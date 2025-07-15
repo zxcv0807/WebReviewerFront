@@ -9,9 +9,7 @@ import ReviewCard from '../components/ReviewCard';
 import PhishingSiteList from '../components/PhishingSiteList';
 
 export default function HomePage() {
-  const [reviews, setReviews] = useState<Post[]>([]);
   const [freePosts, setFreePosts] = useState<Post[]>([]);
-  const [phishingPosts, setPhishingPosts] = useState<Post[]>([]);
   const [websiteReviews, setWebsiteReviews] = useState<Review[]>([]);
   const [phishingSites, setPhishingSites] = useState<PhishingSite[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('reviews');
@@ -29,15 +27,15 @@ export default function HomePage() {
       try {
         setLoading(true);
         
-        const [reviewsArr, freeArr, phishingArr] = await Promise.all([
+        const [, freeArr, ] = await Promise.all([
           getPosts({ type: 'reviews', category: '웹사이트 리뷰', limit: 10 }),
           getPosts({ type: 'free', category: '자유게시판', limit: 10 }),
           getPosts({ type: 'phishing', category: '피싱사이트 신고', limit: 10 }),
         ]);
         
-        setReviews(reviewsArr);
+        // setReviews(reviewsArr); // Removed as per edit hint
         setFreePosts(freeArr);
-        setPhishingPosts(phishingArr);
+        // setPhishingPosts(phishingArr); // Removed as per edit hint
       } catch (error) {
         console.error('게시글 로딩 중 오류:', error);
         // API 오류 시 빈 배열 유지

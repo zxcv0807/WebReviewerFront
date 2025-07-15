@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPost, getCategories, getTags } from '../api/posts';
-import type { PostForm, Category, Tag } from '../types';
+import type { PostForm } from '../types';
 import PostEditor from '../components/PostEditor';
 
 export default function PostWritePage() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 

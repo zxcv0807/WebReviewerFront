@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPost, updatePost, getCategories, getTags } from '../api/posts';
-import type { Post, PostForm, Category, Tag } from '../types';
+import type { Post, PostForm } from '../types';
 import PostEditor from '../components/PostEditor';
 
 export default function PostEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [post, setPost] = useState<Post | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -26,8 +26,8 @@ export default function PostEditPage() {
         ]);
         
         setPost(postData);
-        setCategories(categoriesResponse);
-        setTags(tagsResponse);
+        setCategories(categoriesResponse as string[]);
+        setTags(tagsResponse as string[]);
       } catch (error) {
         console.error('데이터 로딩 중 오류:', error);
         alert('게시글을 불러올 수 없습니다.');
@@ -87,8 +87,8 @@ export default function PostEditPage() {
   const initialData: PostForm = {
     title: post.title,
     content: post.content,
-    categoryId: post.category?.id,
-    tagIds: post.tags?.map(tag => tag.id) || [],
+    category: post.category,
+    tags: post.tags || [],
   };
 
   return (

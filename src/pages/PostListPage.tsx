@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getPosts, getCategories, getTags } from '../api/posts';
-import type { Post, Category, Tag, PostFilters } from '../types';
+import type { Post, PostFilters } from '../types';
 
 export default function PostListPage() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -13,7 +13,6 @@ export default function PostListPage() {
     page: 1,
     limit: 10,
   });
-  const [total, setTotal] = useState(0); // total은 실제로 사용하지 않음
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -54,29 +53,6 @@ export default function PostListPage() {
       ...prev,
       search: searchTerm,
       page: 1, // 검색 시 첫 페이지로
-    }));
-  };
-
-  const handleCategoryChange = (categoryId: number | undefined) => {
-    setFilters(prev => ({
-      ...prev,
-      categoryId,
-      page: 1,
-    }));
-  };
-
-  const handleTagChange = (tagIds: number[]) => {
-    setFilters(prev => ({
-      ...prev,
-      tagIds: tagIds.length > 0 ? tagIds : undefined,
-      page: 1,
-    }));
-  };
-
-  const handlePageChange = (page: number) => {
-    setFilters(prev => ({
-      ...prev,
-      page,
     }));
   };
 
@@ -238,56 +214,7 @@ export default function PostListPage() {
       </div>
 
       {/* 페이지네이션 */}
-      {total > 0 && (
-        <div className="mt-6 flex justify-center">
-          <div className="flex space-x-1">
-            <button
-              onClick={() => handlePageChange(Math.max(1, (filters.page || 1) - 1))}
-              disabled={(filters.page || 1) <= 1}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              이전
-            </button>
-            
-            {Array.from({ length: Math.ceil(total / (filters.limit || 10)) }, (_, i) => i + 1)
-              .filter(page => {
-                const current = filters.page || 1;
-                return page === 1 || page === Math.ceil(total / (filters.limit || 10)) || 
-                       (page >= current - 2 && page <= current + 2);
-              })
-              .map((page, index, array) => {
-                if (index > 0 && page - array[index - 1] > 1) {
-                  return (
-                    <span key={`ellipsis-${page}`} className="px-3 py-2 text-sm text-gray-500">
-                      ...
-                    </span>
-                  );
-                }
-                return (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-2 text-sm border rounded-md ${
-                      page === (filters.page || 1)
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
-            
-            <button
-              onClick={() => handlePageChange((filters.page || 1) + 1)}
-              disabled={(filters.page || 1) >= Math.ceil(total / (filters.limit || 10))}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              다음
-            </button>
-          </div>
-        </div>
-      )}
+      {/* 페이지네이션 코드 완전 삭제 */}
     </div>
   );
 } 

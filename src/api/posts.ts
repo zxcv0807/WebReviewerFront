@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import type { Post, PostForm, PostFilters, Category, Tag, Review, ReviewForm, CommentForm, PhishingSite, PhishingReportForm } from '../types';
+import type { Post, PostForm, PostFilters, Review, ReviewForm, CommentForm, PhishingSite, PhishingReportForm } from '../types';
 
 // 게시글 목록 조회
 export const getPosts = async (filters?: PostFilters): Promise<Post[]> => {

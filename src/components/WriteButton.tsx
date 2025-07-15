@@ -7,7 +7,7 @@ interface WriteButtonProps {
   onClick?: () => void;
 }
 
-export default function WriteButton({ activeTab, onClick }: WriteButtonProps) {
+export default function WriteButton({ activeTab }: WriteButtonProps) {
   // 자유게시판에서만 글쓰기 버튼 표시
   if (activeTab !== 'free') {
     return null;

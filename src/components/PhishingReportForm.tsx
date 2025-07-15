@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { PhishingReportForm, PhishingReason } from '../types';
+import type { PhishingReportForm } from '../types';
 import { PHISHING_REASONS } from '../types';
 
 interface PhishingReportFormProps {

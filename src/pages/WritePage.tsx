@@ -7,7 +7,6 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { ListNode, ListItemNode } from '@lexical/list';
-import { $getRoot, $getSelection } from 'lexical';
 import { HeadingNode } from '@lexical/rich-text';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
@@ -17,7 +16,6 @@ import ImagePlugin from '../plugins/ImagePlugin';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import ToolbarPlugin from '../plugins/ToolbarPlugin';
 import DOMPurify from 'dompurify';
-import type { TabType } from '../types';
 import { createPost } from '../api/posts';
 import { useAppSelector } from '../redux/hooks';
 
@@ -60,7 +58,6 @@ export default function WritePage() {
   const [category] = useState<string>('free');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
-  const [editorState, setEditorState] = useState('');
   const [previewHtml, setPreviewHtml] = useState('');
   const [isComposing, setIsComposing] = useState(false);
   const [lexicalState, setLexicalState] = useState<any>(null); // Lexical JSON 객체
@@ -70,7 +67,6 @@ export default function WritePage() {
 
   // URL 파라미터에서 탭 타입과 수정 모드 가져오기
   useEffect(() => {
-    const type = searchParams.get('type');
     const editId = searchParams.get('edit');
     
     // 수정 모드인 경우 기존 데이터 로드
@@ -108,8 +104,6 @@ export default function WritePage() {
 
   const handleChange = (editorStateObj: any, editor: any) => {
     editorStateObj.read(() => {
-      const root = $getRoot();
-      setEditorState(root.getTextContent());
       // Lexical JSON 객체 저장
       setLexicalState(editorStateObj.toJSON());
       // HTML 변환 (미리보기용)

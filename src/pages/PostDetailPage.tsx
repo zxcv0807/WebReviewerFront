@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getPost, deletePost } from '../api/posts';
 import type { Post, TabType } from '../types';
 import LexicalViewer from '../components/LexicalViewer';
@@ -7,17 +7,13 @@ import { useAppSelector } from '../redux/hooks';
 
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const { user } = useAppSelector((state) => state.auth);
 
-  const typeParam = searchParams.get('type');
-  const postType = (typeParam === 'reviews' || typeParam === 'free' || typeParam === 'phishing') 
-    ? typeParam as TabType
-    : 'free' as TabType;
+  // typeParam 변수 삭제
 
   useEffect(() => {
     const fetchPost = async () => {

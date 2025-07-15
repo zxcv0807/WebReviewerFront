@@ -23,13 +23,10 @@ function App() {
         <Header />
         <main>
           <Routes>
-            {/* 홈페이지 - 로그인 없이도 접근 가능 */}
             <Route 
               path="/" 
               element={<HomePage />} 
             />
-            
-            {/* 로그인/회원가입 페이지 */}
             <Route 
               path="/login" 
               element={<LoginPage />} 

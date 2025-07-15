@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -8,18 +8,18 @@ import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
-import { $getRoot, $getSelection } from 'lexical';
+import { $getRoot } from 'lexical';
 import type { EditorState } from 'lexical';
 import ToolbarPlugin from '../plugins/ToolbarPlugin';
 import ImagePlugin from '../plugins/ImagePlugin';
-import type { PostForm, Category, Tag } from '../types';
+import type { PostForm } from '../types';
 import CategorySelect from './CategorySelect';
 import TagSelect from './TagSelect';
 
 interface PostEditorProps {
   initialData?: PostForm;
-  categories: Category[];
-  tags: Tag[];
+  categories: string[];
+  tags: string[];
   onSubmit: (data: PostForm) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -102,8 +102,8 @@ export default function PostEditor({
 }: PostEditorProps) {
   const [title, setTitle] = useState(initialData?.title || '');
   const [content, setContent] = useState(initialData?.content || '');
-  const [categoryId, setCategoryId] = useState<number | undefined>(initialData?.categoryId);
-  const [selectedTagIds, setSelectedTagIds] = useState<number[]>(initialData?.tagIds || []);
+  const [category, setCategory] = useState<string>(initialData?.category || '');
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags || []);
   const [errors, setErrors] = useState<{ title?: string; content?: string }>({});
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -126,8 +126,8 @@ export default function PostEditor({
     onSubmit({
       title: title.trim(),
       content: content.trim(),
-      categoryId,
-      tagIds: selectedTagIds,
+      category,
+      tags: selectedTags,
     });
   };
 
@@ -169,8 +169,8 @@ export default function PostEditor({
           </label>
           <CategorySelect
             categories={categories}
-            selectedCategoryId={categoryId}
-            onCategoryChange={setCategoryId}
+            selectedCategory={category}
+            onCategoryChange={setCategory}
             className="w-full"
           />
         </div>
@@ -182,8 +182,8 @@ export default function PostEditor({
           </label>
           <TagSelect
             tags={tags}
-            selectedTagIds={selectedTagIds}
-            onTagChange={setSelectedTagIds}
+            selectedTags={selectedTags}
+            onTagChange={setSelectedTags}
             className="w-full"
           />
         </div>
