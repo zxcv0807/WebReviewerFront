@@ -28,8 +28,13 @@ export const authAPI = {
   },
 
   signup: async (data: SignupRequest): Promise<AuthResponse> => {
-    const response = await axiosInstance.post('/auth/signup', data);
-    return response.data;
+    try {
+      const response = await axiosInstance.post('/auth/signup', data);
+      return response.data;
+    } catch (error: any) {
+      // 백엔드 에러를 그대로 throw
+      throw error;
+    }
   },
 
   logout: async (): Promise<void> => {

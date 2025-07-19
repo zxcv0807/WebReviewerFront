@@ -30,10 +30,19 @@ export default function ReviewWritePage() {
       await createReview(reviewData);
       alert('리뷰가 성공적으로 작성되었습니다!');
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('리뷰 작성 실패:', error);
-      alert('리뷰 작성에 실패했습니다.');
-      throw error;
+      // 중복 리뷰 에러 처리
+      if (
+        error?.response?.status === 400 &&
+        (typeof error?.response?.data === 'string'
+          ? error.response.data.includes('이미 리뷰가 등록된 사이트입니다.')
+          : error?.response?.data?.message?.includes('이미 리뷰가 등록된 사이트입니다.'))
+      ) {
+        alert('이미 리뷰가 등록된 사이트입니다.\n동일한 사이트에 대한 중복 리뷰는 작성할 수 없습니다.');
+      } else {
+        alert('리뷰 작성에 실패했습니다.');
+      }
     }
   };
 

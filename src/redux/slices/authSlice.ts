@@ -25,17 +25,28 @@ const initialState: AuthState = {
 // Async thunks
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials: { email: string; password: string }) => {
-    const response = await authAPI.login(credentials);
-    return response;
+  async (credentials: { email: string; password: string }, { rejectWithValue }) => {
+    try {
+      const response = await authAPI.login(credentials);
+      return response;
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      return rejectWithValue(detail || '로그인에 실패했습니다.');
+    }
   }
 );
 
 export const signup = createAsyncThunk(
   'auth/signup',
-  async (userData: { username: string; email: string; password: string }) => {
-    const response = await authAPI.signup(userData);
-    return response;
+  async (userData: { username: string; email: string; password: string }, { rejectWithValue }) => {
+    try {
+      const response = await authAPI.signup(userData);
+      return response;
+    } catch (error: any) {
+      // 백엔드 에러 메시지를 그대로 넘김
+      const detail = error?.response?.data?.detail;
+      return rejectWithValue(detail || '회원가입에 실패했습니다.');
+    }
   }
 );
 
@@ -84,7 +95,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || '로그인에 실패했습니다.';
+        state.error = (action.payload as string) || action.error.message || '로그인에 실패했습니다.';
       })
       // Signup
       .addCase(signup.pending, (state) => {
@@ -99,7 +110,7 @@ const authSlice = createSlice({
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || '회원가입에 실패했습니다.';
+        state.error = (action.payload as string) || action.error.message || '회원가입에 실패했습니다.';
       })
       // Logout
       .addCase(logout.pending, (state) => {

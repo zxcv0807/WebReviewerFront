@@ -86,9 +86,9 @@ export default function HomePage() {
     console.log('검색:', searchTerm);
   };
 
-  const handleCommentSubmit = async (reviewId: number, content: string) => {
+  const handleCommentSubmit = async (reviewId: number, data: { content: string; rating: number }) => {
     try {
-      await createComment(reviewId, { content });
+      await createComment(reviewId, data);
       // 댓글 작성 후에는 전체 리뷰 목록을 새로고침하지 않음
       // ReviewCard에서 개별적으로 댓글을 새로고침함
     } catch (error) {

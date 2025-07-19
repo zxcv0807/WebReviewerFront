@@ -13,9 +13,7 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import ExampleTheme from '../plugins/ExampleTheme';
 import { ImageNode } from '../plugins/ImageNode';
 import ImagePlugin from '../plugins/ImagePlugin';
-import { $generateHtmlFromNodes } from '@lexical/html';
 import ToolbarPlugin from '../plugins/ToolbarPlugin';
-import DOMPurify from 'dompurify';
 import { createPost } from '../api/posts';
 import { useAppSelector } from '../redux/hooks';
 
@@ -58,7 +56,6 @@ export default function WritePage() {
   const [category] = useState<string>('free');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
-  const [previewHtml, setPreviewHtml] = useState('');
   const [isComposing, setIsComposing] = useState(false);
   const [lexicalState, setLexicalState] = useState<any>(null); // Lexical JSON 객체
   const [simpleContent, setSimpleContent] = useState(''); // 일반 텍스트 내용
@@ -102,13 +99,10 @@ export default function WritePage() {
     },
   };
 
-  const handleChange = (editorStateObj: any, editor: any) => {
+  const handleChange = (editorStateObj: any) => {
     editorStateObj.read(() => {
       // Lexical JSON 객체 저장
       setLexicalState(editorStateObj.toJSON());
-      // HTML 변환 (미리보기용)
-      const html = $generateHtmlFromNodes(editor, null);
-      setPreviewHtml(html);
     });
   };
 
@@ -224,7 +218,7 @@ export default function WritePage() {
             <div className="border border-gray-300 rounded mb-4">
               <ToolbarPlugin />
               <LexicalEditor />
-              <OnChangePlugin onChange={(editorState, editor) => handleChange(editorState, editor)} />
+              <OnChangePlugin onChange={handleChange} />
             </div>
           </LexicalComposer>
         ) : (
@@ -243,24 +237,6 @@ export default function WritePage() {
           등록
         </button>
       </form>
-      {/* 미리보기 */}
-      <div className="mt-10 p-4 border-t">
-        <h3 className="text-lg font-semibold mb-2 text-gray-700">미리보기</h3>
-        <div className="mb-2 text-xl font-bold">{title}</div>
-        <div className="mb-2 text-sm text-gray-500">카테고리: {category}</div>
-        <div className="mb-2 flex flex-wrap gap-2">
-          {tags.map(tag => (
-            <span key={tag} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">#{tag}</span>
-          ))}
-        </div>
-        <div className="bg-gray-50 p-2 rounded min-h-[60px] text-gray-800 whitespace-pre-line">
-          {isFreeBoard ? (
-            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewHtml) }} />
-          ) : (
-            <div>{simpleContent}</div>
-          )}
-        </div>
-      </div>
     </div>
   );
 } 

@@ -1,30 +1,59 @@
-import React from 'react';
+import React, { useState, useId } from 'react';
 import type { Review, Comment } from '../types';
 import { getReview } from '../api/posts';
 import { useAppSelector } from '../redux/hooks';
 
 interface ReviewCardProps {
   review: Review;
-  onCommentSubmit?: (reviewId: number, content: string) => void;
+  onCommentSubmit?: (reviewId: number, data: { content: string; rating: number }) => void;
 }
 
 // 별점 표시 컴포넌트
-function StarRating({ rating }: { rating: number }) {
+function StarRating({ rating, onChange, size = 20, readOnly = true }: { rating: number; onChange?: (r: number) => void; size?: number; readOnly?: boolean }) {
+  const uniqueId = useId();
   return (
-    <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <svg
-          key={star}
-          className={`w-4 h-4 ${
-            star <= rating ? 'text-yellow-400 fill-current' : 'text-gray-200'
-          }`}
-          viewBox="0 0 20 20"
-        >
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
+    <span className={`flex items-center gap-1 ${!readOnly ? 'cursor-pointer' : ''}`}> 
+      {[1, 2, 3, 4, 5].map((star) => {
+        const fill =
+          rating >= star
+            ? '100%'
+            : rating >= star - 1 && rating < star
+            ? `${((rating - (star - 1)) * 100).toFixed(0)}%`
+            : '0%';
+        const gradId = `starGrad-${uniqueId}-${star}-${String(rating).replace('.', '-')}`;
+        return (
+          <span key={gradId} style={{ position: 'relative', display: 'inline-block' }}>
+            <svg
+              width={size}
+              height={size}
+              viewBox="0 0 20 20"
+              style={{ position: 'absolute', top: 0, left: 0 }}
+              onClick={onChange && !readOnly ? () => onChange(star) : undefined}
+            >
+              <defs>
+                <linearGradient id={gradId}>
+                  <stop offset={fill} stopColor="#facc15" />
+                  <stop offset={fill} stopColor="#e5e7eb" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                fill={`url(#${gradId})`}
+              />
+            </svg>
+            <svg
+              width={size}
+              height={size}
+              viewBox="0 0 20 20"
+              style={{ visibility: 'hidden' }}
+            >
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          </span>
+        );
+      })}
       <span className="ml-1 text-xs text-gray-600">({rating}/5)</span>
-    </div>
+    </span>
   );
 }
 
@@ -35,6 +64,7 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [comments, setComments] = React.useState<Comment[]>(review.comments || []);
   const [isLoadingComments, setIsLoadingComments] = React.useState(false);
+  const [commentRating, setCommentRating] = useState(0);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   // 댓글 섹션이 열릴 때 댓글 데이터 가져오기
@@ -57,12 +87,13 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
   // 댓글 작성 후 댓글 목록 새로고침
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !onCommentSubmit) return;
+    if (!newComment.trim() || !onCommentSubmit || commentRating === 0) return;
 
     try {
       setIsSubmitting(true);
-      await onCommentSubmit(review.id, newComment.trim());
+      await onCommentSubmit(review.id, { content: newComment.trim(), rating: commentRating });
       setNewComment('');
+      setCommentRating(0);
       
       // 댓글 작성 후 댓글 목록 새로고침
       const fullReview = await getReview(review.id);
@@ -103,7 +134,14 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
           </div>
           <div className="flex items-center gap-4">
             <div className="flex flex-col items-end gap-1">
-              <StarRating rating={review.rating} />
+              {/* <StarRating rating={review.rating} /> */}
+              {typeof review.average_rating === 'number' && (
+                <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
+                  <span>평균 별점</span>
+                  <StarRating rating={review.average_rating} size={15} />
+                  <span>({review.average_rating.toFixed(2)})</span>
+                </div>
+              )}
               <div className="text-xs text-gray-500">
                 {formatDate(review.created_at)}
               </div>
@@ -132,18 +170,18 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
           {/* 요약 */}
           <div className="mb-4">
             <h4 className="font-semibold text-gray-800 mb-2">요약</h4>
-            <p className="text-gray-700 leading-relaxed">{review.summary}</p>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-line">{review.summary}</p>
           </div>
 
           {/* 장점/단점 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="bg-green-50 p-4 rounded-lg">
               <h4 className="font-semibold text-green-800 mb-2">장점</h4>
-              <p className="text-green-700">{review.pros}</p>
+              <p className="text-green-700 whitespace-pre-line">{review.pros}</p>
             </div>
             <div className="bg-red-50 p-4 rounded-lg">
               <h4 className="font-semibold text-red-800 mb-2">단점</h4>
-              <p className="text-red-700">{review.cons}</p>
+              <p className="text-red-700 whitespace-pre-line">{review.cons}</p>
             </div>
           </div>
 
@@ -179,7 +217,12 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
                       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                       .map((comment) => (
                         <div key={comment.id} className="bg-white p-3 rounded-lg border">
-                          <p className="text-gray-800 mb-1">{comment.content}</p>
+                          <div className="flex items-center gap-2 mb-1">
+                            {typeof comment.rating === 'number' && comment.rating > 0 && (
+                              <StarRating rating={comment.rating} size={20} />
+                            )}
+                            <span className="text-gray-800">{comment.content}</span>
+                          </div>
                           <div className="text-xs text-gray-500">
                             {formatDate(comment.created_at)}
                           </div>
@@ -193,7 +236,7 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
                 {/* 댓글 작성 폼 */}
                 {isAuthenticated ? (
                   <form onSubmit={handleCommentSubmit} className="border-t pt-4">
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center">
                       <input
                         type="text"
                         value={newComment}
@@ -202,9 +245,13 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         disabled={isSubmitting}
                       />
+                      <div className="flex items-center gap-2 mt-2 md:mt-0">
+                        <span className="text-sm text-gray-700">별점:</span>
+                        <StarRating rating={commentRating} onChange={setCommentRating} size={4} readOnly={false} />
+                      </div>
                       <button
                         type="submit"
-                        disabled={!newComment.trim() || isSubmitting}
+                        disabled={!newComment.trim() || isSubmitting || commentRating === 0}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isSubmitting ? '작성 중...' : '작성'}

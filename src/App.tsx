@@ -11,6 +11,7 @@ import WritePage from './pages/WritePage';
 import PostDetailPage from './pages/PostDetailPage';
 import ReviewWritePage from './pages/ReviewWritePage';
 import PhishingReportPage from './pages/PhishingReportPage';
+import Footer from './components/Footer';
 
 function App() {
   const dispatch = useAppDispatch();
@@ -19,7 +20,7 @@ function App() {
   }, [dispatch]);
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50" style={{ paddingBottom: '70px' }}>
         <Header />
         <main>
           <Routes>
@@ -53,6 +54,7 @@ function App() {
             />
           </Routes>
         </main>
+        <Footer />
       </div>
     </Router>
   );
