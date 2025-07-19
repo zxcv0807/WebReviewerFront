@@ -4,7 +4,6 @@ import { getPost, deletePost } from '../api/posts';
 import type { Post, TabType } from '../types';
 import LexicalViewer from '../components/LexicalViewer';
 import { useAppSelector } from '../redux/hooks';
-import React from 'react';
 
 // 별점 표시 컴포넌트 (간단 버전)
 function StarRating({ rating, size = 5 }: { rating: number; size?: number }) {

@@ -13,9 +13,7 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import ExampleTheme from '../plugins/ExampleTheme';
 import { ImageNode } from '../plugins/ImageNode';
 import ImagePlugin from '../plugins/ImagePlugin';
-import { $generateHtmlFromNodes } from '@lexical/html';
 import ToolbarPlugin from '../plugins/ToolbarPlugin';
-import DOMPurify from 'dompurify';
 import { createPost } from '../api/posts';
 import { useAppSelector } from '../redux/hooks';
 
@@ -58,7 +56,6 @@ export default function WritePage() {
   const [category] = useState<string>('free');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
-  const [previewHtml, setPreviewHtml] = useState('');
   const [isComposing, setIsComposing] = useState(false);
   const [lexicalState, setLexicalState] = useState<any>(null); // Lexical JSON 객체
   const [simpleContent, setSimpleContent] = useState(''); // 일반 텍스트 내용
@@ -102,13 +99,10 @@ export default function WritePage() {
     },
   };
 
-  const handleChange = (editorStateObj: any, editor: any) => {
+  const handleChange = (editorStateObj: any) => {
     editorStateObj.read(() => {
       // Lexical JSON 객체 저장
       setLexicalState(editorStateObj.toJSON());
-      // HTML 변환 (미리보기용)
-      const html = $generateHtmlFromNodes(editor, null);
-      setPreviewHtml(html);
     });
   };
 
@@ -224,7 +218,7 @@ export default function WritePage() {
             <div className="border border-gray-300 rounded mb-4">
               <ToolbarPlugin />
               <LexicalEditor />
-              <OnChangePlugin onChange={(editorState, editor) => handleChange(editorState, editor)} />
+              <OnChangePlugin onChange={handleChange} />
             </div>
           </LexicalComposer>
         ) : (
