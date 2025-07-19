@@ -6,9 +6,15 @@ const PASSWORD_REGEX = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{
 
 // 백엔드 에러 메시지 추출 함수
 export const extractErrorMessage = (error: any): string => {
+  if (!error) return '알 수 없는 오류가 발생했습니다.';
+  if (typeof error === 'string') return error;
   const detail = error?.response?.data?.detail;
   if (!detail) return '알 수 없는 오류가 발생했습니다.';
   if (typeof detail === 'string') return detail;
+  console.log(detail);
+  console.log('error:', error);
+  console.log('error.response:', error?.response);
+  console.log('error.response.data:', error?.response?.data);
   if (Array.isArray(detail)) {
     return detail.map((d) => d.msg).join(', ');
   }

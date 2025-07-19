@@ -243,24 +243,6 @@ export default function WritePage() {
           등록
         </button>
       </form>
-      {/* 미리보기 */}
-      <div className="mt-10 p-4 border-t">
-        <h3 className="text-lg font-semibold mb-2 text-gray-700">미리보기</h3>
-        <div className="mb-2 text-xl font-bold">{title}</div>
-        <div className="mb-2 text-sm text-gray-500">카테고리: {category}</div>
-        <div className="mb-2 flex flex-wrap gap-2">
-          {tags.map(tag => (
-            <span key={tag} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">#{tag}</span>
-          ))}
-        </div>
-        <div className="bg-gray-50 p-2 rounded min-h-[60px] text-gray-800 whitespace-pre-line">
-          {isFreeBoard ? (
-            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewHtml) }} />
-          ) : (
-            <div>{simpleContent}</div>
-          )}
-        </div>
-      </div>
     </div>
   );
 } 

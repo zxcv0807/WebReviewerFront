@@ -26,7 +26,12 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // 로그인 요청은 /refresh 시도에서 제외
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !(originalRequest.url && originalRequest.url.endsWith('/auth/login'))
+    ) {
       originalRequest._retry = true;
       
       try {

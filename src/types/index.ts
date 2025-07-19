@@ -61,6 +61,7 @@ export interface Review {
   created_at: string;
   updated_at: string;
   comments?: Comment[];
+  average_rating?: number; // 댓글 평균 별점
 }
 
 export interface Comment {
@@ -69,6 +70,7 @@ export interface Comment {
   content: string;
   created_at: string;
   updated_at: string;
+  rating?: number; // 댓글 별점
 }
 
 export interface ReviewForm {
