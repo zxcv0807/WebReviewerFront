@@ -135,7 +135,6 @@ export default function WritePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       let content;
       if (category === 'free') {
@@ -145,16 +144,13 @@ export default function WritePage() {
         // 다른 탭은 일반 텍스트 사용
         content = simpleContent;
       }
-
       const postData = {
         title,
         content,
         category: category, // category는 'free'로 고정
         tags,
       };
-      
-      const response = await createPost(postData);
-      
+      await createPost(postData);
       alert('게시글이 작성되었습니다!');
       navigate('/');
     } catch (error) {

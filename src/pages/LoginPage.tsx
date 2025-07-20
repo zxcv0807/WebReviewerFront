@@ -18,17 +18,14 @@ export default function LoginPage() {
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-
     if (!formData.email.trim()) {
       errors.email = '이메일을 입력해주세요.';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = '올바른 이메일 형식을 입력해주세요.';
     }
-
     if (!formData.password) {
       errors.password = '비밀번호를 입력해주세요.';
     }
-
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -36,15 +33,12 @@ export default function LoginPage() {
   const handleSubmit = async (e?: React.FormEvent | React.KeyboardEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-
     if (error) {
       dispatch(clearError());
     }
-
     if (!validateForm()) {
       return;
     }
-
     try {
       await dispatch(login(formData)).unwrap();
       navigate('/');
@@ -53,23 +47,16 @@ export default function LoginPage() {
     }
   };
 
+  // Google OAuth2 Authorization Code Flow만 남김
   const handleGoogleLogin = async () => {
     if (loading) return;
-    
     try {
-      console.log('Google OAuth 2.0 로그인 시작...');
-      
-      // Google OAuth 2.0 Authorization Code Flow
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      const redirectUri = encodeURIComponent('http://localhost:5173/auth/callback');
+      const redirectUri = encodeURIComponent(window.location.origin + '/auth/callback');
       const scope = encodeURIComponent('openid email profile');
       const responseType = 'code';
       const state = Math.random().toString(36).substring(7);
-      
-      // state를 localStorage에 저장 (CSRF 방지)
       localStorage.setItem('google_oauth_state', state);
-      
-      // Google OAuth 2.0 인증 URL로 리디렉션
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${clientId}&` +
         `redirect_uri=${redirectUri}&` +
@@ -78,11 +65,8 @@ export default function LoginPage() {
         `state=${state}&` +
         `access_type=offline&` +
         `prompt=consent`;
-      
       window.location.href = authUrl;
-      
     } catch (err) {
-      console.error('Google login error:', err);
       alert('Google 로그인에 실패했습니다.');
     }
   };
@@ -90,8 +74,6 @@ export default function LoginPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // 입력 시 해당 필드의 에러 메시지 제거
     if (validationErrors[name]) {
       setValidationErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -104,17 +86,13 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-gray-900">WebRating 커뮤니티</h1>
           <p className="mt-2 text-gray-600">웹사이트를 리뷰하고, 다른 사람들의 의견을 확인해보세요!</p>
         </div>
-        
         <div className="bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">로그인</h2>
-          
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
               {extractErrorMessage(error)}
             </div>
           )}
-          
-
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -137,7 +115,6 @@ export default function LoginPage() {
                 <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
               )}
             </div>
-
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 비밀번호
@@ -167,7 +144,6 @@ export default function LoginPage() {
                 <p className="mt-1 text-sm text-red-600">{validationErrors.password}</p>
               )}
             </div>
-
             <button
               type="button"
               disabled={loading}
@@ -180,7 +156,6 @@ export default function LoginPage() {
             >
               {loading ? '로그인 중...' : '로그인'}
             </button>
-            
             {/* Google 로그인 버튼 */}
             <button
               type="button"
@@ -193,7 +168,6 @@ export default function LoginPage() {
               <img src={GoogleLogo} alt="Sign in with Google" className="h-10" />
             </button>
           </div>
-
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               계정이 없으신가요?{' '}
