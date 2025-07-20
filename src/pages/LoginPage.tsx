@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { login, clearError } from '../redux/slices/authSlice';
 import { extractErrorMessage } from '../utils/validation';
+import GoogleLogo from '../assets/Signinwithgoogle.png';
 
 export default function LoginPage() {
   const dispatch = useAppDispatch();
@@ -33,7 +34,6 @@ export default function LoginPage() {
   };
 
   const handleSubmit = async (e?: React.FormEvent | React.KeyboardEvent) => {
-    console.log('handleSubmit 호출됨', e?.type); // 디버깅용
     e?.preventDefault();
     e?.stopPropagation();
 
@@ -42,18 +42,48 @@ export default function LoginPage() {
     }
 
     if (!validateForm()) {
-      console.log('유효성 검사 실패'); // 디버깅용
       return;
     }
-    console.log('로그인 시도 중...');
 
     try {
       await dispatch(login(formData)).unwrap();
-      console.log('로그인 성공'); // 디버깅용
       navigate('/');
     } catch (error) {
-      console.log('로그인 실패:', error); // 디버깅용
       // 에러는 Redux에서 처리됨
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    if (loading) return;
+    
+    try {
+      console.log('Google OAuth 2.0 로그인 시작...');
+      
+      // Google OAuth 2.0 Authorization Code Flow
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      const redirectUri = encodeURIComponent('http://localhost:5173/auth/callback');
+      const scope = encodeURIComponent('openid email profile');
+      const responseType = 'code';
+      const state = Math.random().toString(36).substring(7);
+      
+      // state를 localStorage에 저장 (CSRF 방지)
+      localStorage.setItem('google_oauth_state', state);
+      
+      // Google OAuth 2.0 인증 URL로 리디렉션
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `client_id=${clientId}&` +
+        `redirect_uri=${redirectUri}&` +
+        `response_type=${responseType}&` +
+        `scope=${scope}&` +
+        `state=${state}&` +
+        `access_type=offline&` +
+        `prompt=consent`;
+      
+      window.location.href = authUrl;
+      
+    } catch (err) {
+      console.error('Google login error:', err);
+      alert('Google 로그인에 실패했습니다.');
     }
   };
 
@@ -149,6 +179,18 @@ export default function LoginPage() {
               }}
             >
               {loading ? '로그인 중...' : '로그인'}
+            </button>
+            
+            {/* Google 로그인 버튼 */}
+            <button
+              type="button"
+              disabled={loading}
+              onClick={handleGoogleLogin}
+              className="w-full flex justify-center mt-2 bg-transparent border-none p-0 shadow-none hover:bg-transparent focus:outline-none"
+              style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
+              aria-label="Google로 로그인"
+            >
+              <img src={GoogleLogo} alt="Sign in with Google" className="h-10" />
             </button>
           </div>
 

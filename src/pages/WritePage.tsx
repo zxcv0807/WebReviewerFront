@@ -65,11 +65,9 @@ export default function WritePage() {
   // URL 파라미터에서 탭 타입과 수정 모드 가져오기
   useEffect(() => {
     const editId = searchParams.get('edit');
-    
     // 수정 모드인 경우 기존 데이터 로드
     if (editId) {
       // TODO: 기존 게시글 데이터 로드
-      console.log('수정 모드:', editId);
     }
   }, [searchParams]);
 
@@ -155,11 +153,7 @@ export default function WritePage() {
         tags,
       };
       
-      console.log('게시글 데이터:', postData);
-      
-      // Backend 연동
       const response = await createPost(postData);
-      console.log('게시글 생성 성공:', response);
       
       alert('게시글이 작성되었습니다!');
       navigate('/');

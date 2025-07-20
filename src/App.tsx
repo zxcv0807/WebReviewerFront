@@ -11,6 +11,7 @@ import WritePage from './pages/WritePage';
 import PostDetailPage from './pages/PostDetailPage';
 import ReviewWritePage from './pages/ReviewWritePage';
 import PhishingReportPage from './pages/PhishingReportPage';
+import GoogleAuthCallback from './pages/GoogleAuthCallback';
 import Footer from './components/Footer';
 
 function App() {
@@ -51,6 +52,10 @@ function App() {
             <Route 
               path="/post/:id" 
               element={<PostDetailPage />} 
+            />
+            <Route 
+              path="/auth/callback" 
+              element={<GoogleAuthCallback />} 
             />
           </Routes>
         </main>
