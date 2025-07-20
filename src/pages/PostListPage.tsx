@@ -16,9 +16,7 @@ export default function PostListPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    console.log('useEffect 실행, filters:', filters);
     const fetchData = async () => {
-      console.log('fetchData 실행');
       try {
         setLoading(true);
         // 자유게시판만 보이도록 type/category를 강제 지정
@@ -32,15 +30,11 @@ export default function PostListPage() {
           getCategories(),
           getTags(),
         ]);
-        console.log('자유게시판 API 응답:', postsResponse);
-        if (!Array.isArray(postsResponse)) {
-          console.error('API 응답이 배열이 아닙니다:', postsResponse);
-        }
         setPosts(postsResponse); // postsResponse는 Post[]
         setCategories(categoriesResponse); // string[]
         setTags(tagsResponse); // string[]
       } catch (error) {
-        console.error('데이터 로딩 중 오류:', error);
+        // ignore
       } finally {
         setLoading(false);
       }

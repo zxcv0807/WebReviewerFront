@@ -65,11 +65,9 @@ export default function WritePage() {
   // URL 파라미터에서 탭 타입과 수정 모드 가져오기
   useEffect(() => {
     const editId = searchParams.get('edit');
-    
     // 수정 모드인 경우 기존 데이터 로드
     if (editId) {
       // TODO: 기존 게시글 데이터 로드
-      console.log('수정 모드:', editId);
     }
   }, [searchParams]);
 
@@ -137,7 +135,6 @@ export default function WritePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       let content;
       if (category === 'free') {
@@ -147,20 +144,13 @@ export default function WritePage() {
         // 다른 탭은 일반 텍스트 사용
         content = simpleContent;
       }
-
       const postData = {
         title,
         content,
         category: category, // category는 'free'로 고정
         tags,
       };
-      
-      console.log('게시글 데이터:', postData);
-      
-      // Backend 연동
-      const response = await createPost(postData);
-      console.log('게시글 생성 성공:', response);
-      
+      await createPost(postData);
       alert('게시글이 작성되었습니다!');
       navigate('/');
     } catch (error) {

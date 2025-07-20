@@ -16,10 +16,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleWriteClick = () => {
-    // TODO: 글쓰기 모달 또는 페이지로 이동
-    console.log('글쓰기 버튼 클릭');
-  };
+  const handleWriteClick = () => {};
 
   // API에서 게시글 데이터 가져오기
   useEffect(() => {
@@ -81,10 +78,7 @@ export default function HomePage() {
     }
   }, [activeTab]);
 
-  const handleSearch = () => {
-    // 검색 기능 구현
-    console.log('검색:', searchTerm);
-  };
+  const handleSearch = () => {};
 
   const handleCommentSubmit = async (reviewId: number, data: { content: string; rating: number }) => {
     try {

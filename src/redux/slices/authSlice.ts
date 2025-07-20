@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authAPI } from '../../api/auth';
+import { loginWithGoogle } from '../../api/auth';
 
 export interface User {
   id: number;
@@ -72,6 +73,21 @@ export const restoreUser = createAsyncThunk(
   }
 );
 
+export const googleLogin = createAsyncThunk(
+  'auth/googleLogin',
+  async (idToken: string, { rejectWithValue }) => {
+    try {
+      await loginWithGoogle(idToken); // just wait for login, ignore return
+      // loginWithGoogle already stores access_token in localStorage
+      // But we need to fetch user info (me) after login
+      const response = await authAPI.me();
+      return { user: response.user };
+    } catch (error: any) {
+      return rejectWithValue(error.message || '구글 로그인에 실패했습니다.');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -138,6 +154,21 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         localStorage.removeItem('access_token');
+      })
+      // Google Login
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+        // access_token already stored
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || action.error.message || '구글 로그인에 실패했습니다.';
       });
   },
 });
