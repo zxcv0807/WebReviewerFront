@@ -3,7 +3,6 @@ import type { Post, PostForm, PostFilters, Review, ReviewForm, CommentForm, Phis
 
 // 게시글 목록 조회
 export const getPosts = async (filters?: PostFilters): Promise<Post[]> => {
-  console.log('getPosts 호출됨, filters:', filters);
   try {
     const params = new URLSearchParams();
     if (filters?.search) params.append('search', filters.search);
@@ -12,9 +11,7 @@ export const getPosts = async (filters?: PostFilters): Promise<Post[]> => {
     if (filters?.type) params.append('type', filters.type);
     if (filters?.category) params.append('category', filters.category); // category 파라미터 추가
     const url = `/posts/posts?${params.toString()}`;
-    console.log('getPosts 요청 URL:', url);
     const response = await axiosInstance.get(url);
-    console.log('getPosts 응답:', response.data);
     return response.data; // 배열 반환
   } catch (error) {
     console.error('게시글 목록 조회 중 오류:', error);

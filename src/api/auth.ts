@@ -72,7 +72,6 @@ export const loginWithGoogle = async (idToken: string): Promise<void> => {
     
     // access_token은 response body, refresh_token은 쿠키로 전달됨
     const data = await response.json();
-    console.log('Google login success:', data);
     
     // access_token을 localStorage에 저장 (기존 방식과 통일)
     if (data.access_token) {

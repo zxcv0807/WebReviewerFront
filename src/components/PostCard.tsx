@@ -29,7 +29,7 @@ function getPreviewText(content: any, postType?: string): string {
 export default function PostCard({ post, titleColor = 'text-green-600' }: PostCardProps) {
   return (
     <li className="bg-white p-4 rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow">
-      <Link to={`/post/${post.id}?type=${post.type}`} className="block">
+      <Link to={`/post/${post.id}`} className="block">
         <div className="flex items-center gap-2 mb-1">
           <span className={`font-bold ${titleColor} hover:underline`}>{post.title}</span>
         </div>
