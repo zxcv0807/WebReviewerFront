@@ -35,7 +35,6 @@ export default function PostCard({ post, titleColor = 'text-green-600' }: PostCa
         </div>
         <p className="text-gray-700 mb-2 line-clamp-2">{getPreviewText(post.content, post.type)}</p>
         <div className="flex justify-between text-xs text-gray-400">
-          <span>{post.category}</span>
           <span>{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
         </div>
       </Link>
