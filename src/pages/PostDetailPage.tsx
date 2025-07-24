@@ -225,7 +225,7 @@ export default function PostDetailPage() {
         {isFreeBoard && isAuthor && (
           <div className="flex space-x-2 ml-4">
             <Link
-              to={`/write?type=${post.type}&edit=${post.id}`}
+              to={`/write?edit=${post.id}`}
               className="px-4 py-2 text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               수정
