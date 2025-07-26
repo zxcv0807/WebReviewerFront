@@ -17,10 +17,10 @@ export default function WriteButton({ activeTab }: WriteButtonProps) {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex justify-end">
+      <div className="w-full sm:w-auto">
         <a
           href="/login"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition"
+          className="block w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition text-sm sm:text-base"
         >
           로그인 후 글쓰기
         </a>
@@ -29,10 +29,10 @@ export default function WriteButton({ activeTab }: WriteButtonProps) {
   }
 
   return (
-    <div className="flex justify-end">
+    <div className="w-full sm:w-auto">
       <Link
         to={`/write?type=${activeTab}`}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition"
+        className="block w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition text-sm sm:text-base"
       >
         글쓰기
       </Link>

@@ -28,12 +28,12 @@ function getPreviewText(content: any, postType?: string): string {
 
 export default function PostCard({ post, titleColor = 'text-green-600' }: PostCardProps) {
   return (
-    <li className="bg-white p-4 rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow">
+    <li className="bg-white p-3 sm:p-4 rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow">
       <Link to={`/post/${post.id}`} className="block">
-        <div className="flex items-center gap-2 mb-1">
-          <span className={`font-bold ${titleColor} hover:underline`}>{post.title}</span>
+        <div className="flex items-center gap-2 mb-2">
+          <span className={`font-bold text-sm sm:text-base ${titleColor} hover:underline break-words`}>{post.title}</span>
         </div>
-        <p className="text-gray-700 mb-2 line-clamp-2">{getPreviewText(post.content, post.type)}</p>
+        <p className="text-gray-700 mb-2 line-clamp-2 text-sm sm:text-base">{getPreviewText(post.content, post.type)}</p>
         <div className="flex justify-between text-xs text-gray-400">
           <span>{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
         </div>

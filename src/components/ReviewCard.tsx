@@ -119,21 +119,21 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 mb-4">
       {/* 간단한 카드 형태 (접힌 상태) */}
-      <div className="p-4">
-        <div className="flex justify-between items-center">
-          <div className="flex-1">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">{review.site_name}</h3>
+      <div className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <div className="flex-1 w-full">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 break-words">{review.site_name}</h3>
             <a
               href={review.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 text-sm break-all"
+              className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm break-all"
             >
               {review.url}
             </a>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <div className="flex flex-col items-start sm:items-end gap-1">
               {/* <StarRating rating={review.rating} /> */}
               {typeof review.average_rating === 'number' && (
                 <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
@@ -148,11 +148,11 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
             </div>
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1 text-gray-600 hover:text-gray-800 text-sm p-2 rounded hover:bg-gray-100"
+              className="flex items-center gap-1 text-gray-600 hover:text-gray-800 text-xs sm:text-sm p-2 rounded hover:bg-gray-100"
             >
               {isExpanded ? '접기' : '자세히 보기'}
               <svg
-                className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -166,22 +166,22 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
 
       {/* 상세 정보 (펼쳐진 상태) */}
       {isExpanded && (
-        <div className="border-t border-gray-100 p-4 bg-gray-50">
+        <div className="border-t border-gray-100 p-3 sm:p-4 bg-gray-50">
           {/* 요약 */}
           <div className="mb-4">
-            <h4 className="font-semibold text-gray-800 mb-2">요약</h4>
-            <p className="text-gray-700 leading-relaxed whitespace-pre-line">{review.summary}</p>
+            <h4 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">요약</h4>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-line text-sm sm:text-base">{review.summary}</p>
           </div>
 
           {/* 장점/단점 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-green-800 mb-2">장점</h4>
-              <p className="text-green-700 whitespace-pre-line">{review.pros}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div className="bg-green-50 p-3 sm:p-4 rounded-lg">
+              <h4 className="font-semibold text-green-800 mb-2 text-sm sm:text-base">장점</h4>
+              <p className="text-green-700 whitespace-pre-line text-sm sm:text-base">{review.pros}</p>
             </div>
-            <div className="bg-red-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-red-800 mb-2">단점</h4>
-              <p className="text-red-700 whitespace-pre-line">{review.cons}</p>
+            <div className="bg-red-50 p-3 sm:p-4 rounded-lg">
+              <h4 className="font-semibold text-red-800 mb-2 text-sm sm:text-base">단점</h4>
+              <p className="text-red-700 whitespace-pre-line text-sm sm:text-base">{review.cons}</p>
             </div>
           </div>
 
@@ -189,15 +189,15 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
           <div className="border-t pt-4">
             <button
               onClick={handleToggleComments}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4 text-sm sm:text-base"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
               댓글 {comments.length}개
-              {isLoadingComments && <span className="text-sm text-gray-500">(로딩 중...)</span>}
+              {isLoadingComments && <span className="text-xs sm:text-sm text-gray-500">(로딩 중...)</span>}
               <svg
-                className={`w-4 h-4 transition-transform ${showComments ? 'rotate-180' : ''}`}
+                className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showComments ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -211,17 +211,17 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
                 {/* 댓글 목록 */}
                 <div className="space-y-3">
                   {isLoadingComments ? (
-                    <p className="text-gray-500 text-center py-4">댓글을 불러오는 중...</p>
+                    <p className="text-gray-500 text-center py-4 text-sm sm:text-base">댓글을 불러오는 중...</p>
                   ) : comments.length > 0 ? (
                     comments
                       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                       .map((comment) => (
                         <div key={comment.id} className="bg-white p-3 rounded-lg border">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-1">
                             {typeof comment.rating === 'number' && comment.rating > 0 && (
                               <StarRating rating={comment.rating} size={20} />
                             )}
-                            <span className="text-gray-800">{comment.content}</span>
+                            <span className="text-gray-800 text-sm sm:text-base break-words">{comment.content}</span>
                           </div>
                           <div className="text-xs text-gray-500">
                             {formatDate(comment.created_at)}
@@ -229,37 +229,37 @@ export default function ReviewCard({ review, onCommentSubmit }: ReviewCardProps)
                         </div>
                       ))
                   ) : (
-                    <p className="text-gray-500 text-center py-4">아직 댓글이 없습니다.</p>
+                    <p className="text-gray-500 text-center py-4 text-sm sm:text-base">아직 댓글이 없습니다.</p>
                   )}
                 </div>
 
                 {/* 댓글 작성 폼 */}
                 {isAuthenticated ? (
                   <form onSubmit={handleCommentSubmit} className="border-t pt-4">
-                    <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                    <div className="flex flex-col gap-3">
                       <input
                         type="text"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         placeholder="댓글을 입력하세요..."
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         disabled={isSubmitting}
                       />
-                      <div className="flex items-center gap-2 mt-2 md:mt-0">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                         <span className="text-sm text-gray-700">별점:</span>
                         <StarRating rating={commentRating} onChange={setCommentRating} size={4} readOnly={false} />
                       </div>
                       <button
                         type="submit"
                         disabled={!newComment.trim() || isSubmitting || commentRating === 0}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                       >
                         {isSubmitting ? '작성 중...' : '작성'}
                       </button>
                     </div>
                   </form>
                 ) : (
-                  <div className="border-t pt-4 text-center text-gray-500">
+                  <div className="border-t pt-4 text-center text-gray-500 text-sm sm:text-base">
                     <a href="/login" className="text-blue-600 hover:underline">로그인 후 댓글을 작성할 수 있습니다.</a>
                   </div>
                 )}
