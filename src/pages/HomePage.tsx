@@ -92,13 +92,13 @@ export default function HomePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
       
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       
       {/* 검색 및 글쓰기 버튼 */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex-1 w-full sm:max-w-md">
           <div className="flex">
             <input
               type="text"
@@ -106,43 +106,45 @@ export default function HomePage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="제목 또는 내용으로 검색..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
             />
             <button
               onClick={handleSearch}
-              className="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
             >
               검색
             </button>
           </div>
         </div>
-        {activeTab === 'reviews' ? (
-            <Link
-            to="/review/write"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition"
-            >
-            리뷰 작성
-          </Link>
-        ) : activeTab === 'phishing' ? (
-          <Link
-            to="/phishing/report"
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow transition"
-          >
-            피싱 사이트 신고
+        <div className="w-full sm:w-auto">
+          {activeTab === 'reviews' ? (
+              <Link
+              to="/review/write"
+                className="block w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition text-sm sm:text-base"
+              >
+              리뷰 작성
             </Link>
-        ) : (
-          <WriteButton activeTab={activeTab} onClick={handleWriteClick} />
-          )}
+          ) : activeTab === 'phishing' ? (
+            <Link
+              to="/phishing/report"
+              className="block w-full sm:w-auto text-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow transition text-sm sm:text-base"
+            >
+              피싱 사이트 신고
+              </Link>
+          ) : (
+            <WriteButton activeTab={activeTab} onClick={handleWriteClick} />
+            )}
+        </div>
       </div>
 
       {/* 웹사이트 리뷰 탭 */}
       {activeTab === 'reviews' && (
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">웹사이트 리뷰</h2>
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">웹사이트 리뷰</h2>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">로딩 중...</div>
+            <div className="text-center py-8 text-gray-500 text-sm sm:text-base">로딩 중...</div>
           ) : websiteReviews.length > 0 ? (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {websiteReviews.map((review) => (
                 <ReviewCard
                   key={review.id}
@@ -152,7 +154,7 @@ export default function HomePage() {
             ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 text-sm sm:text-base">
               아직 작성된 리뷰가 없습니다.
               <br />
               <Link
@@ -169,17 +171,17 @@ export default function HomePage() {
       {/* 자유게시판 탭 */}
       {activeTab === 'free' && (
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">자유게시판</h2>
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">자유게시판</h2>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">로딩 중...</div>
+            <div className="text-center py-8 text-gray-500 text-sm sm:text-base">로딩 중...</div>
           ) : freePosts.length > 0 ? (
-          <ul className="space-y-4">
+          <ul className="space-y-3 sm:space-y-4">
             {freePosts.map((post) => (
               <PostCard key={post.id} post={post} titleColor="text-green-600" />
             ))}
           </ul>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 text-sm sm:text-base">
               아직 작성된 게시글이 없습니다.
               <br />
               <Link to="/write?type=free" className="text-blue-600 hover:underline">
@@ -193,13 +195,13 @@ export default function HomePage() {
       {/* 피싱사이트 신고 탭 */}
       {activeTab === 'phishing' && (
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">피싱사이트 신고</h2>
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">피싱사이트 신고</h2>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">로딩 중...</div>
+            <div className="text-center py-8 text-gray-500 text-sm sm:text-base">로딩 중...</div>
           ) : phishingSites.length > 0 ? (
             <PhishingSiteList sites={phishingSites} />
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 text-sm sm:text-base">
               아직 신고된 피싱사이트가 없습니다.
               <br />
               <Link
