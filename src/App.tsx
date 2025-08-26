@@ -16,47 +16,26 @@ import Footer from './components/Footer';
 
 function App() {
   const dispatch = useAppDispatch();
+
+  // 앱이 시작될 때, 사용자 세션을 복원.
   useEffect(() => {
     dispatch(restoreUser());
   }, [dispatch]);
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50" style={{ paddingBottom: '70px' }}>
         <Header />
         <main>
           <Routes>
-            <Route 
-              path="/" 
-              element={<HomePage />} 
-            />
-            <Route 
-              path="/login" 
-              element={<LoginPage />} 
-            />
-            <Route 
-              path="/signup" 
-              element={<SignupPage />} 
-            />
-            <Route 
-              path="/write" 
-              element={<WritePage />} 
-            />
-            <Route 
-              path="/review/write" 
-              element={<ReviewWritePage />} 
-            />
-            <Route 
-              path="/phishing/report" 
-              element={<PhishingReportPage />} 
-            />
-            <Route 
-              path="/post/:id" 
-              element={<PostDetailPage />} 
-            />
-            <Route 
-              path="/auth/callback" 
-              element={<GoogleAuthCallback />} 
-            />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/write" element={<WritePage />} />
+            <Route path="/review/write" element={<ReviewWritePage />} />
+            <Route path="/phishing/report" element={<PhishingReportPage />} />
+            <Route path="/post/:id" element={<PostDetailPage />} />
+            <Route path="/auth/callback" element={<GoogleAuthCallback />} />
           </Routes>
         </main>
         <Footer />

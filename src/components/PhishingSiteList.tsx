@@ -71,14 +71,9 @@ export default function PhishingSiteList({ sites }: PhishingSiteListProps) {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
                 <div className="flex-1 w-full">
                   <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 break-words">
-                    <a
-                      href={site.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-red-600 hover:text-red-800 break-all text-sm sm:text-base"
-                    >
+                    <span className="text-red-600 break-all text-sm sm:text-base">
                       {site.url}
-                    </a>
+                    </span>
                   </h3>
                   <span className={`inline-block px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getReasonColor(site.reason)}`}>
                     {getReasonLabel(site.reason)}
