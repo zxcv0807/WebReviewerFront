@@ -1,18 +1,18 @@
 import axiosInstance from './axiosInstance';
-import type { Post, PostForm, PostFilters, Review, ReviewForm, CommentForm, PhishingSite, PhishingReportForm, VoteCreate, VoteResponse, CommentCreate, CommentUpdate, PhishingCommentResponse, PostCommentResponse, PhishingSiteWithCommentsResponse, PostWithCommentsResponse } from '../types';
+import type { Post, PostForm, PostFilters, Review, ReviewForm, CommentForm, PhishingSite, PhishingReportForm, VoteCreate, VoteResponse, CommentCreate, CommentUpdate, PhishingCommentResponse, PostCommentResponse, PhishingSiteWithCommentsResponse, PostWithCommentsResponse, PaginatedResponse } from '../types';
 
-// 게시글 목록 조회
-export const getPosts = async (filters?: PostFilters): Promise<Post[]> => {
+// 게시글 목록 조회 (페이지네이션)
+export const getPosts = async (filters?: PostFilters): Promise<PaginatedResponse<Post>> => {
   try {
     const params = new URLSearchParams();
     if (filters?.search) params.append('search', filters.search);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
     if (filters?.type) params.append('type', filters.type);
-    if (filters?.category) params.append('category', filters.category); // category 파라미터 추가
+    if (filters?.category) params.append('category', filters.category);
     const url = `/posts/posts?${params.toString()}`;
     const response = await axiosInstance.get(url);
-    return response.data; // 배열 반환
+    return response.data;
   } catch (error) {
     console.error('게시글 목록 조회 중 오류:', error);
     throw error;
@@ -83,10 +83,13 @@ export const getTags = async (): Promise<string[]> => {
   return [];
 };
 
-// 리뷰 관련 API 함수들
-export const getReviews = async (): Promise<Review[]> => {
+// 리뷰 관련 API 함수들 (페이지네이션)
+export const getReviews = async (page: number = 1, limit: number = 10): Promise<PaginatedResponse<Review>> => {
   try {
-    const response = await axiosInstance.get('/api/reviews');
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    const response = await axiosInstance.get(`/api/reviews?${params.toString()}`);
     return response.data;
   } catch (error) {
     console.error('리뷰 목록 조회 실패:', error);
@@ -124,10 +127,13 @@ export const createComment = async (reviewId: number, commentData: CommentForm):
   }
 };
 
-// 피싱 사이트 관련 API 함수들
-export const getPhishingSites = async (): Promise<PhishingSite[]> => {
+// 피싱 사이트 관련 API 함수들 (페이지네이션)
+export const getPhishingSites = async (page: number = 1, limit: number = 10): Promise<PaginatedResponse<PhishingSite>> => {
   try {
-    const response = await axiosInstance.get('/api/phishing-sites');
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    const response = await axiosInstance.get(`/api/phishing-sites?${params.toString()}`);
     return response.data;
   } catch (error) {
     console.error('피싱 사이트 목록 조회 실패:', error);

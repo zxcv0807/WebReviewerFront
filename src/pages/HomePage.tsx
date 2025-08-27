@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import type { Post, TabType, Review, PhishingSite } from '../types';
+import type { Post, TabType, Review, PhishingSite, PaginationInfo } from '../types';
 import { getPosts, getReviews, getPhishingSites } from '../api/posts';
 import TabNavigation from '../components/TabNavigation';
 import PostCard from '../components/PostCard';
 import WriteButton from '../components/WriteButton';
 import ReviewCard from '../components/ReviewCard';
 import PhishingSiteList from '../components/PhishingSiteList';
+import Pagination from '../components/Pagination';
 
 export default function HomePage() {
   const [freePosts, setFreePosts] = useState<Post[]>([]);
@@ -15,68 +16,87 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<TabType>('reviews');
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // 페이지네이션 상태
+  const [reviewsPagination, setReviewsPagination] = useState<PaginationInfo | null>(null);
+  const [freePostsPagination, setFreePostsPagination] = useState<PaginationInfo | null>(null);
+  const [phishingPagination, setPhishingPagination] = useState<PaginationInfo | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleWriteClick = () => {};
 
-  // API에서 게시글 데이터 가져오기
+
+  // 자유게시판 데이터 가져오기
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchFreePosts = async () => {
+      if (activeTab !== 'free') return;
+      
       try {
         setLoading(true);
-        
-        const [, freeArr, ] = await Promise.all([
-          getPosts({ type: 'reviews', category: '웹사이트 리뷰', limit: 10 }),
-          getPosts({ type: 'free', category: '자유게시판', limit: 10 }),
-          getPosts({ type: 'phishing', category: '피싱사이트 신고', limit: 10 }),
-        ]);
-        
-        // setReviews(reviewsArr); // Removed as per edit hint
-        setFreePosts(freeArr);
-        // setPhishingPosts(phishingArr); // Removed as per edit hint
+        const response = await getPosts({ type: 'free', category: '자유게시판', page: currentPage, limit: 10 });
+        setFreePosts(response.data);
+        setFreePostsPagination(response.pagination);
       } catch (error) {
-        console.error('게시글 로딩 중 오류:', error);
-        // API 오류 시 빈 배열 유지
+        console.error('자유게시판 로딩 중 오류:', error);
+        setFreePosts([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPosts();
-  }, []);
+    fetchFreePosts();
+  }, [activeTab, currentPage]);
 
   // 웹사이트 리뷰 데이터 가져오기
   useEffect(() => {
     const fetchWebsiteReviews = async () => {
+      if (activeTab !== 'reviews') return;
+      
       try {
-        const reviewsData = await getReviews();
-        setWebsiteReviews(reviewsData);
+        setLoading(true);
+        const response = await getReviews(currentPage, 10);
+        setWebsiteReviews(response.data);
+        setReviewsPagination(response.pagination);
       } catch (error) {
         console.error('웹사이트 리뷰 로딩 중 오류:', error);
         setWebsiteReviews([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (activeTab === 'reviews') {
-      fetchWebsiteReviews();
-    }
-  }, [activeTab]);
+    fetchWebsiteReviews();
+  }, [activeTab, currentPage]);
 
   // 피싱 사이트 데이터 가져오기
   useEffect(() => {
     const fetchPhishingSites = async () => {
+      if (activeTab !== 'phishing') return;
+      
       try {
-        const sitesData = await getPhishingSites();
-        setPhishingSites(sitesData);
+        setLoading(true);
+        const response = await getPhishingSites(currentPage, 10);
+        setPhishingSites(response.data);
+        setPhishingPagination(response.pagination);
       } catch (error) {
         console.error('피싱 사이트 로딩 중 오류:', error);
         setPhishingSites([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (activeTab === 'phishing') {
-      fetchPhishingSites();
-    }
+    fetchPhishingSites();
+  }, [activeTab, currentPage]);
+
+  // 탭 변경시 페이지 초기화
+  useEffect(() => {
+    setCurrentPage(1);
   }, [activeTab]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleSearch = () => {};
 
@@ -134,14 +154,22 @@ export default function HomePage() {
           {loading ? (
             <div className="text-center py-8 text-gray-500 text-sm sm:text-base">로딩 중...</div>
           ) : websiteReviews.length > 0 ? (
-            <div className="space-y-4 sm:space-y-6">
-              {websiteReviews.map((review) => (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
+            <>
+              <div className="space-y-4 sm:space-y-6">
+                {websiteReviews.map((review) => (
+                  <ReviewCard
+                    key={review.id}
+                    review={review}
+                  />
+                ))}
+              </div>
+              {reviewsPagination && (
+                <Pagination 
+                  pagination={reviewsPagination} 
+                  onPageChange={handlePageChange} 
                 />
-            ))}
-            </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-8 text-gray-500 text-sm sm:text-base">
               아직 작성된 리뷰가 없습니다.
@@ -164,11 +192,19 @@ export default function HomePage() {
           {loading ? (
             <div className="text-center py-8 text-gray-500 text-sm sm:text-base">로딩 중...</div>
           ) : freePosts.length > 0 ? (
-          <ul className="space-y-3 sm:space-y-4">
-            {freePosts.map((post) => (
-              <PostCard key={post.id} post={post} titleColor="text-green-600" />
-            ))}
-          </ul>
+          <>
+            <ul className="space-y-3 sm:space-y-4">
+              {freePosts.map((post) => (
+                <PostCard key={post.id} post={post} titleColor="text-green-600" />
+              ))}
+            </ul>
+            {freePostsPagination && (
+              <Pagination 
+                pagination={freePostsPagination} 
+                onPageChange={handlePageChange} 
+              />
+            )}
+          </>
           ) : (
             <div className="text-center py-8 text-gray-500 text-sm sm:text-base">
               아직 작성된 게시글이 없습니다.
@@ -188,7 +224,15 @@ export default function HomePage() {
           {loading ? (
             <div className="text-center py-8 text-gray-500 text-sm sm:text-base">로딩 중...</div>
           ) : phishingSites.length > 0 ? (
-            <PhishingSiteList sites={phishingSites} />
+            <>
+              <PhishingSiteList sites={phishingSites} />
+              {phishingPagination && (
+                <Pagination 
+                  pagination={phishingPagination} 
+                  onPageChange={handlePageChange} 
+                />
+              )}
+            </>
           ) : (
             <div className="text-center py-8 text-gray-500 text-sm sm:text-base">
               아직 신고된 피싱사이트가 없습니다.

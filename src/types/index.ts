@@ -33,6 +33,21 @@ export interface PostForm {
   tags?: string[]; // 선택 필드
 }
 
+// 페이지네이션 정보
+export interface PaginationInfo {
+  current_page: number;
+  total_pages: number;
+  total_count: number;
+  has_next: boolean;
+  has_previous: boolean;
+}
+
+// 페이지네이션 응답 제네릭
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: PaginationInfo;
+}
+
 export interface PostListResponse {
   posts: Post[];
   total?: number;
