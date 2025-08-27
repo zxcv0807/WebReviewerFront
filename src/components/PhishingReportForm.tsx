@@ -11,15 +11,15 @@ export default function PhishingReportForm({ onSubmit, onCancel }: PhishingRepor
   const [formData, setFormData] = useState<PhishingReportForm>({
     url: '',
     reason: 'fake_login',
-    description: '',
+    description: undefined,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.url.trim() || !formData.description.trim()) {
-      alert('모든 필수 항목을 입력해주세요.');
+    if (!formData.url.trim()) {
+      alert('URL을 입력해주세요.');
       return;
     }
 
@@ -83,15 +83,14 @@ export default function PhishingReportForm({ onSubmit, onCancel }: PhishingRepor
         {/* 추가 설명 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            추가 설명 <span className="text-red-500">*</span>
+            추가 설명 <span className="text-gray-400">(선택사항)</span>
           </label>
           <textarea
-            value={formData.description}
+            value={formData.description || ''}
             onChange={(e) => handleInputChange('description', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
             rows={4}
-            placeholder="피싱 사이트의 구체적인 행위나 의심되는 부분을 설명해주세요."
-            required
+            placeholder="피싱 사이트의 구체적인 행위나 의심되는 부분을 설명해주세요. (선택사항)"
           />
         </div>
 

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getPost, deletePost } from '../api/posts';
-import type { Post, TabType } from '../types';
+import { getPost, deletePost, votePost, cancelPostVote, getMyPostVote, createPostComment, getPostComments, updatePostComment, deletePostComment } from '../api/posts';
+import type { Post, TabType, PostCommentResponse } from '../types';
 import LexicalViewer from '../components/LexicalViewer';
+import VoteButtons from '../components/VoteButtons';
+import SimpleCommentSection from '../components/SimpleCommentSection';
 import { useAppSelector } from '../redux/hooks';
 
 // 별점 표시 컴포넌트 (간단 버전)
@@ -56,6 +58,8 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [comments, setComments] = useState<PostCommentResponse[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
   const { user } = useAppSelector((state) => state.auth);
 
   // typeParam 변수 삭제
@@ -68,6 +72,16 @@ export default function PostDetailPage() {
         setLoading(true);
         const postData = await getPost(parseInt(id));
         setPost(postData);
+        
+        // 모든 게시글 타입에 대해 댓글 로드 시도
+        try {
+          const commentData = await getPostComments(postData.id);
+          setComments(commentData);
+        } catch (error) {
+          console.error('댓글 로딩 실패:', error);
+          // 댓글이 없거나 오류가 발생해도 게시글은 표시되도록 함
+          setComments([]);
+        }
       } catch (error) {
         alert('게시글을 불러올 수 없습니다.');
         navigate('/');
@@ -141,6 +155,42 @@ export default function PostDetailPage() {
     return '';
   };
 
+  // 댓글 관련 함수들
+  const loadComments = async () => {
+    if (!post) return;
+    
+    try {
+      setCommentsLoading(true);
+      const commentData = await getPostComments(post.id);
+      setComments(commentData);
+    } catch (error) {
+      console.error('댓글 로딩 실패:', error);
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  const handleAddComment = async (data: { content: string }) => {
+    if (!post) return;
+    await createPostComment(post.id, data);
+    // 댓글 추가 후 새로고침
+    await loadComments();
+  };
+
+  const handleUpdateComment = async (commentId: number, data: { content: string }) => {
+    if (!post) return;
+    await updatePostComment(post.id, commentId, data);
+    // 댓글 수정 후 새로고침
+    await loadComments();
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!post) return;
+    await deletePostComment(post.id, commentId);
+    // 댓글 삭제 후 새로고침
+    await loadComments();
+  };
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -176,49 +226,67 @@ export default function PostDetailPage() {
             </span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{post.title}</h1>
-          {/* 평균 별점 표시 (리뷰 타입일 때만) */}
-          {post.type === 'reviews' && (
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm text-gray-700 font-semibold">평균 별점:</span>
-              {typeof review?.average_rating === 'number' && review.average_rating > 0 ? (
-                <>
-                  <StarRating rating={review.average_rating} size={20} />
-                  <span className="text-gray-700">{review.average_rating.toFixed(2)}</span>
-                </>
-              ) : (
-                <span className="text-gray-400">별점 없음</span>
-              )}
+          
+          {/* 리뷰 타입인 경우 별점과 날짜/조회수를 한 줄에, 자유게시판은 카테고리/태그와 날짜/조회수를 한 줄에 배치 */}
+          {post.type === 'reviews' ? (
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700 font-semibold">평균 별점:</span>
+                {typeof review?.average_rating === 'number' && review.average_rating > 0 ? (
+                  <>
+                    <StarRating rating={review.average_rating} size={20} />
+                    <span className="text-gray-700">{review.average_rating.toFixed(2)}</span>
+                  </>
+                ) : (
+                  <span className="text-gray-400">별점 없음</span>
+                )}
+              </div>
+              <div className="flex items-center text-sm text-gray-600 gap-3">
+                <span>{formatDate(post.created_at)}</span>
+                {post.updated_at !== post.created_at && (
+                  <span>수정됨: {formatDate(post.updated_at)}</span>
+                )}
+                <span className="flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  조회 {post.view_count || 0}회
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {post.category && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                    {post.category}
+                  </span>
+                )}
+                {post.tags && post.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-800"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center text-sm text-gray-600 gap-3">
+                <span>{formatDate(post.created_at)}</span>
+                {post.updated_at !== post.created_at && (
+                  <span>수정됨: {formatDate(post.updated_at)}</span>
+                )}
+                <span className="flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  조회 {post.view_count || 0}회
+                </span>
+              </div>
             </div>
           )}
-          
-          <div className="flex items-center text-sm text-gray-600 mb-4">
-            <span>{post.category}</span>
-            <span className="mx-2">•</span>
-            <span>{formatDate(post.created_at)}</span>
-            {post.updated_at !== post.created_at && (
-              <>
-                <span className="mx-2">•</span>
-                <span>수정됨: {formatDate(post.updated_at)}</span>
-              </>
-            )}
-          </div>
-
-          {/* 카테고리와 태그 */}
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            {post.category && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                {post.category}
-              </span>
-            )}
-            {post.tags && post.tags.map((tag, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-800"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
         </div>
 
         {/* 액션 버튼 */}
@@ -253,6 +321,32 @@ export default function PostDetailPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* 자유게시판인 경우 추천/비추천 버튼 표시 */}
+      {post.type === 'free' && (
+        <div className="mt-6 bg-white rounded-lg shadow-sm border p-4">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">이 게시글이 도움이 되었나요?</h3>
+          <VoteButtons
+            likeCount={post.like_count || 0}
+            dislikeCount={post.dislike_count || 0}
+            onVote={async (voteType) => { await votePost(post.id, { vote_type: voteType }); }}
+            onCancelVote={() => cancelPostVote(post.id)}
+            getCurrentVote={() => getMyPostVote(post.id)}
+          />
+        </div>
+      )}
+
+      {/* 댓글 섹션 - 모든 게시글 타입에 표시 */}
+      <div className="mt-6">
+        <SimpleCommentSection
+          comments={comments}
+          onAddComment={handleAddComment}
+          onUpdateComment={handleUpdateComment}
+          onDeleteComment={handleDeleteComment}
+          loading={commentsLoading}
+          title="댓글"
+        />
       </div>
 
       {/* 하단 버튼 */}

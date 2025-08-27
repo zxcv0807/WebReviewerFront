@@ -9,6 +9,9 @@ export interface Post {
   type?: 'free' | 'reviews' | 'phishing';
   user_id: number;      // 작성자 id
   user_name: string;    // 작성자 이름
+  view_count: number;   // 조회수
+  like_count: number;   // 좋아요 수
+  dislike_count: number; // 싫어요 수
 }
 
 export interface Category {
@@ -27,7 +30,7 @@ export interface PostForm {
   title: string;
   content: any; // Lexical JSON
   category: string;
-  tags: string[];
+  tags?: string[]; // 선택 필드
 }
 
 export interface PostListResponse {
@@ -62,6 +65,7 @@ export interface Review {
   updated_at: string;
   comments?: Comment[];
   average_rating?: number; // 댓글 평균 별점
+  view_count: number; // 조회수
 }
 
 export interface Comment {
@@ -84,6 +88,7 @@ export interface ReviewForm {
 
 export interface CommentForm {
   content: string;
+  rating?: number; // 0-5, 리뷰 댓글용 선택적 별점
 }
 
 // 피싱 사이트 관련 타입
@@ -91,15 +96,18 @@ export interface PhishingSite {
   id: number;
   url: string;
   reason: string;
-  description: string;
+  description?: string;
+  status: string;
   created_at: string;
-  updated_at: string;
+  view_count: number;   // 조회수
+  like_count: number;   // 좋아요 수
+  dislike_count: number; // 싫어요 수
 }
 
 export interface PhishingReportForm {
   url: string;
   reason: string;
-  description: string;
+  description?: string; // 선택 필드
 }
 
 export const PHISHING_REASONS = [
@@ -138,4 +146,77 @@ export interface FormErrors {
   name?: string;
   title?: string;
   content?: string;
+}
+
+// 투표 관련 타입
+export interface VoteCreate {
+  vote_type: "like" | "dislike";
+}
+
+export interface VoteResponse {
+  id: number;
+  phishing_site_id?: number;
+  post_id?: number;
+  user_id: number;
+  vote_type: string;
+  created_at: string;
+}
+
+// 댓글 관련 타입 업데이트
+export interface CommentCreate {
+  content: string;
+}
+
+export interface CommentUpdate {
+  content: string;
+}
+
+export interface PhishingCommentResponse {
+  id: number;
+  phishing_site_id: number;
+  user_id: number;
+  user_name: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PostCommentResponse {
+  id: number;
+  post_id: number;
+  user_id: number;
+  user_name: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// 댓글 포함된 상세 응답
+export interface PhishingSiteWithCommentsResponse {
+  id: number;
+  url: string;
+  reason: string;
+  description?: string;
+  status: string;
+  created_at: string;
+  view_count: number;
+  like_count: number;
+  dislike_count: number;
+  comments: PhishingCommentResponse[];
+}
+
+export interface PostWithCommentsResponse {
+  id: number;
+  title: string;
+  category: string;
+  content: any;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+  user_id: number;
+  user_name: string;
+  view_count: number;
+  like_count: number;
+  dislike_count: number;
+  comments: PostCommentResponse[];
 } 

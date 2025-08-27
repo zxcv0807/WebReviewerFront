@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Post, TabType, Review, PhishingSite } from '../types';
-import { getPosts, getReviews, createComment, getPhishingSites } from '../api/posts';
+import { getPosts, getReviews, getPhishingSites } from '../api/posts';
 import TabNavigation from '../components/TabNavigation';
 import PostCard from '../components/PostCard';
 import WriteButton from '../components/WriteButton';
@@ -80,16 +80,6 @@ export default function HomePage() {
 
   const handleSearch = () => {};
 
-  const handleCommentSubmit = async (reviewId: number, data: { content: string; rating: number }) => {
-    try {
-      await createComment(reviewId, data);
-      // 댓글 작성 후에는 전체 리뷰 목록을 새로고침하지 않음
-      // ReviewCard에서 개별적으로 댓글을 새로고침함
-    } catch (error) {
-      console.error('댓글 작성 실패:', error);
-      throw error;
-    }
-  };
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6">
@@ -149,7 +139,6 @@ export default function HomePage() {
                 <ReviewCard
                   key={review.id}
                   review={review}
-                  onCommentSubmit={handleCommentSubmit}
                 />
             ))}
             </div>
