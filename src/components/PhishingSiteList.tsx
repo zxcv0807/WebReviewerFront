@@ -8,15 +8,6 @@ interface PhishingSiteListProps {
 
 export default function PhishingSiteList({ sites }: PhishingSiteListProps) {
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   const getReasonLabel = (reasonValue: string) => {
     const reason = PHISHING_REASONS.find(r => r.value === reasonValue);

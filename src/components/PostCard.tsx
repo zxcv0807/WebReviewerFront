@@ -6,25 +6,6 @@ interface PostCardProps {
   titleColor?: string;
 }
 
-function getPreviewText(content: any, postType?: string): string {
-  // 자유게시판이 아닌 경우 일반 텍스트 처리
-  if (postType !== 'free' && typeof content === 'string') {
-    return content.length > 100 ? content.substring(0, 100) + '...' : content;
-  }
-
-  // Lexical JSON 구조에서 첫 번째 paragraph의 text만 추출
-  try {
-    const children = content?.root?.children;
-    if (Array.isArray(children) && children.length > 0) {
-      const first = children[0];
-      if (Array.isArray(first.children) && first.children.length > 0) {
-        const text = first.children.map((c: any) => c.text).join('');
-        return text.length > 100 ? text.substring(0, 100) + '...' : text;
-      }
-    }
-  } catch (e) {}
-  return '';
-}
 
 export default function PostCard({ post, titleColor = 'text-green-600' }: PostCardProps) {
   return (
