@@ -30,10 +30,10 @@ export default function PostListPage() {
           getCategories(),
           getTags(),
         ]);
-        setPosts(postsResponse); // postsResponse는 Post[]
+        setPosts(postsResponse.data); // postsResponse.data는 Post[]
         setCategories(categoriesResponse); // string[]
         setTags(tagsResponse); // string[]
-      } catch (error) {
+      } catch {
         // ignore
       } finally {
         setLoading(false);
