@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getPhishingSiteWithComments, createPhishingSiteComment, updatePhishingSiteComment, deletePhishingSiteComment, votePhishingSite, cancelPhishingSiteVote, getMyPhishingSiteVote } from '../api/posts';
+import { getPhishingSiteWithComments, createPhishingSiteComment, updatePhishingSiteComment, deletePhishingSiteComment, votePhishingSite, deletePhishingSite } from '../api/posts';
 import type { PhishingSiteWithCommentsResponse, PhishingCommentResponse } from '../types';
 import { PHISHING_REASONS } from '../types';
 import VoteButtons from '../components/VoteButtons';
 import SimpleCommentSection from '../components/SimpleCommentSection';
-// import { useAppSelector } from '../redux/hooks'; // 현재 사용하지 않음
+import EditDeleteButtons from '../components/EditDeleteButtons';
 
 export default function PhishingSiteDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,7 +13,6 @@ export default function PhishingSiteDetailPage() {
   const [phishingSite, setPhishingSite] = useState<PhishingSiteWithCommentsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState<PhishingCommentResponse[]>([]);
-  // const { user } = useAppSelector((state) => state.auth); // 현재 사용하지 않음
 
   useEffect(() => {
     const fetchPhishingSite = async () => {
@@ -22,6 +21,8 @@ export default function PhishingSiteDetailPage() {
       try {
         setLoading(true);
         const siteData = await getPhishingSiteWithComments(parseInt(id));
+        console.log('피싱사이트 데이터:', siteData);
+        console.log('user_id 값:', siteData.user_id, typeof siteData.user_id);
         setPhishingSite(siteData);
         setComments(siteData.comments || []);
       } catch (error) {
@@ -35,6 +36,23 @@ export default function PhishingSiteDetailPage() {
 
     fetchPhishingSite();
   }, [id, navigate]);
+
+  const handleEdit = () => {
+    if (!phishingSite) return;
+    navigate(`/phishing/report?edit=${phishingSite.id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!phishingSite) return;
+    
+    try {
+      await deletePhishingSite(phishingSite.id);
+      alert('피싱 사이트 신고가 삭제되었습니다.');
+      navigate('/');
+    } catch (error) {
+      alert('피싱 사이트 삭제에 실패했습니다.');
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -134,7 +152,17 @@ export default function PhishingSiteDetailPage() {
             피싱사이트 신고
           </span>
         </div>
-        <h1 className="text-3xl font-bold text-red-600 mb-2 break-all">{phishingSite.url}</h1>
+        <div className="flex items-start justify-between mb-2">
+          <h1 className="text-3xl font-bold text-red-600 flex-1 break-all">{phishingSite.url}</h1>
+          {phishingSite.user_id && (
+            <EditDeleteButtons
+              authorId={phishingSite.user_id}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              itemType="피싱 사이트 신고"
+            />
+          )}
+        </div>
         
         {/* 신고 사유와 날짜/조회수를 한 줄에 배치 */}
         <div className="flex items-center justify-between mb-4">
@@ -183,9 +211,12 @@ export default function PhishingSiteDetailPage() {
         <VoteButtons
           likeCount={phishingSite.like_count || 0}
           dislikeCount={phishingSite.dislike_count || 0}
-          onVote={async (voteType) => { await votePhishingSite(phishingSite.id, { vote_type: voteType }); }}
-          onCancelVote={() => cancelPhishingSiteVote(phishingSite.id)}
-          getCurrentVote={() => getMyPhishingSiteVote(phishingSite.id)}
+          onVote={async (voteData) => {
+            await votePhishingSite(phishingSite.id, voteData);
+            // 투표 후 피싱사이트 데이터 새로고침
+            const updatedSite = await getPhishingSiteWithComments(phishingSite.id);
+            setPhishingSite(updatedSite);
+          }}
         />
       </div>
 

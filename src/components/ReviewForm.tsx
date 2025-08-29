@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import type { ReviewForm } from '../types';
+import React, { useState, useEffect } from 'react';
+import type { ReviewForm, Review } from '../types';
 
 interface ReviewFormProps {
   onSubmit: (data: ReviewForm) => Promise<void>;
   onCancel: () => void;
+  initialData?: Review | null;
+  isEditing?: boolean;
 }
 
 // 별점 선택 컴포넌트
@@ -27,12 +29,12 @@ function StarSelector({ rating, onRatingChange }: { rating: number; onRatingChan
           </svg>
         </button>
       ))}
-      <span className="ml-3 text-lg font-semibold text-gray-700">({rating}/5)</span>
+      <span className="ml-3 text-lg font-semibold text-gray-700">{rating}</span>
     </div>
   );
 }
 
-export default function ReviewForm({ onSubmit, onCancel }: ReviewFormProps) {
+export default function ReviewForm({ onSubmit, onCancel, initialData, isEditing = false }: ReviewFormProps) {
   const [formData, setFormData] = useState<ReviewForm>({
     site_name: '',
     url: '',
@@ -42,6 +44,20 @@ export default function ReviewForm({ onSubmit, onCancel }: ReviewFormProps) {
     cons: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 수정 모드에서 기존 데이터로 초기화
+  useEffect(() => {
+    if (isEditing && initialData) {
+      setFormData({
+        site_name: initialData.site_name || '',
+        url: initialData.url || '',
+        summary: initialData.summary || '',
+        rating: initialData.rating || 5,
+        pros: initialData.pros || '',
+        cons: initialData.cons || '',
+      });
+    }
+  }, [isEditing, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +87,9 @@ export default function ReviewForm({ onSubmit, onCancel }: ReviewFormProps) {
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">웹사이트 리뷰 작성</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        {isEditing ? '웹사이트 리뷰 수정' : '웹사이트 리뷰 작성'}
+      </h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 사이트명 */}
@@ -172,7 +190,7 @@ export default function ReviewForm({ onSubmit, onCancel }: ReviewFormProps) {
             disabled={isSubmitting}
             className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? '작성 중...' : '리뷰 작성'}
+            {isSubmitting ? (isEditing ? '수정 중...' : '작성 중...') : (isEditing ? '리뷰 수정' : '리뷰 작성')}
           </button>
         </div>
       </form>

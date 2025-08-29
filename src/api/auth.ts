@@ -47,6 +47,12 @@ export const authAPI = {
   },
   me: async (): Promise<{ user: import('../redux/slices/authSlice').User }> => {
     const response = await axiosInstance.get('/auth/me');
+    
+    // If the API returns user data directly (not wrapped in 'user' property)
+    if (response.data && response.data.id && !response.data.user) {
+      return { user: response.data };
+    }
+    
     return response.data;
   },
 };

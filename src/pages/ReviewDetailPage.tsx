@@ -1,9 +1,11 @@
 import { useState, useEffect, useId } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getReview } from '../api/posts';
-import type { Review, Comment } from '../types';
-// CommentSection 컴포넌트 대신 직접 구현
-// import { useAppSelector } from '../redux/hooks'; // 현재 사용하지 않음
+import { getReview, deleteReview, voteReview, createReviewComment, updateReviewComment, deleteReviewComment, getMyReviewVote } from '../api/posts';
+import type { Review, ReviewCommentResponse } from '../types';
+import EditDeleteButtons from '../components/EditDeleteButtons';
+import VoteButtons from '../components/VoteButtons';
+import { useAppSelector, useAppDispatch } from '../redux/hooks';
+import { restoreUser } from '../redux/slices/authSlice';
 
 // 별점 표시 컴포넌트
 function StarRating({ rating, onChange, size = 20, readOnly = true }: { rating: number; onChange?: (r: number) => void; size?: number; readOnly?: boolean }) {
@@ -49,7 +51,7 @@ function StarRating({ rating, onChange, size = 20, readOnly = true }: { rating: 
           </span>
         );
       })}
-      <span className="ml-1 text-xs text-gray-600">({rating}/5)</span>
+      <span className="ml-1 text-xs text-gray-600">{rating}</span>
     </span>
   );
 }
@@ -59,8 +61,20 @@ export default function ReviewDetailPage() {
   const navigate = useNavigate();
   const [review, setReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(true);
-  const [comments, setComments] = useState<Comment[]>([]);
-  // const { isAuthenticated } = useAppSelector((state) => state.auth); // 현재 사용하지 않음
+  const [comments, setComments] = useState<ReviewCommentResponse[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+
+  // 로그인 상태이지만 user 정보가 없을 때 복구 시도
+  useEffect(() => {
+    if (isAuthenticated && !user) {
+      dispatch(restoreUser());
+    }
+  }, [isAuthenticated, user, dispatch]);
 
   useEffect(() => {
     const fetchReview = async () => {
@@ -71,6 +85,16 @@ export default function ReviewDetailPage() {
         const reviewData = await getReview(parseInt(id));
         setReview(reviewData);
         setComments(reviewData.comments || []);
+        
+        // 로그인된 사용자의 투표 상태 확인
+        if (isAuthenticated) {
+          try {
+            const myVote = await getMyReviewVote(parseInt(id));
+            console.log('현재 사용자 투표 상태:', myVote);
+          } catch (voteError) {
+            console.log('투표 상태 조회 실패 (투표하지 않은 상태일 수 있음):', voteError);
+          }
+        }
       } catch (error) {
         console.error('리뷰 조회 실패:', error);
         alert('리뷰를 불러올 수 없습니다.');
@@ -81,7 +105,24 @@ export default function ReviewDetailPage() {
     };
 
     fetchReview();
-  }, [id, navigate]);
+  }, [id, navigate, isAuthenticated]);
+
+  const handleEdit = () => {
+    if (!review) return;
+    navigate(`/review/write?edit=${review.id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!review) return;
+    
+    try {
+      await deleteReview(review.id);
+      alert('리뷰가 삭제되었습니다.');
+      navigate('/');
+    } catch (error) {
+      alert('리뷰 삭제에 실패했습니다.');
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -93,6 +134,75 @@ export default function ReviewDetailPage() {
     });
   };
 
+  // 댓글 관련 함수들
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!review || !newComment.trim() || submitting) return;
+
+    try {
+      setSubmitting(true);
+      await createReviewComment(review.id, { content: newComment.trim() });
+      
+      // 댓글 목록 새로고침
+      const updatedReview = await getReview(review.id);
+      setComments(updatedReview.comments || []);
+      setNewComment('');
+    } catch (error) {
+      console.error('댓글 작성 실패:', error);
+      alert('댓글 작성에 실패했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const startEditingComment = (comment: ReviewCommentResponse) => {
+    setEditingCommentId(comment.id);
+    setEditingContent(comment.content);
+  };
+
+  const cancelEditingComment = () => {
+    setEditingCommentId(null);
+    setEditingContent('');
+  };
+
+  const handleUpdateComment = async (commentId: number) => {
+    if (!review || !editingContent.trim() || submitting) return;
+
+    try {
+      setSubmitting(true);
+      await updateReviewComment(commentId, { content: editingContent.trim() });
+      
+      // 댓글 목록 새로고침
+      const updatedReview = await getReview(review.id);
+      setComments(updatedReview.comments || []);
+      
+      setEditingCommentId(null);
+      setEditingContent('');
+    } catch (error) {
+      console.error('댓글 수정 실패:', error);
+      alert('댓글 수정에 실패했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!review || !window.confirm('정말로 이 댓글을 삭제하시겠습니까?')) return;
+
+    try {
+      setSubmitting(true);
+      await deleteReviewComment(commentId);
+      
+      // 댓글 목록 새로고침
+      const updatedReview = await getReview(review.id);
+      setComments(updatedReview.comments || []);
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error);
+      alert('댓글 삭제에 실패했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -123,7 +233,17 @@ export default function ReviewDetailPage() {
             웹사이트 리뷰
           </span>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{review.site_name}</h1>
+        <div className="flex items-start justify-between mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 flex-1">{review.site_name}</h1>
+          {review.user_id && (
+            <EditDeleteButtons
+              authorId={review.user_id}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              itemType="리뷰"
+            />
+          )}
+        </div>
         <a
           href={review.url}
           target="_blank"
@@ -133,28 +253,42 @@ export default function ReviewDetailPage() {
           {review.url}
         </a>
         
-        {/* 평균 별점과 날짜/조회수를 한 줄에 배치 */}
+        {/* 별점과 메타 정보 */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            {typeof review.average_rating === 'number' && review.average_rating > 0 ? (
-              <>
-                <span className="text-sm text-gray-700 font-semibold">평균 별점:</span>
-                <StarRating rating={review.average_rating} size={20} />
-                <span className="text-gray-700">({review.average_rating.toFixed(1)})</span>
-              </>
-            ) : (
-              <span className="text-sm text-gray-500">별점 없음</span>
-            )}
+            <span className="text-sm text-gray-700 font-semibold">작성자 별점:</span>
+            <StarRating rating={review.rating} size={20} />
           </div>
-          <div className="flex items-center text-sm text-gray-600 gap-3">
+          <div className="flex items-center text-sm text-gray-600 gap-4">
             <span>{formatDate(review.created_at)}</span>
             <span className="flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
-              조회 {review.view_count || 0}회
+              {review.view_count || 0}회
             </span>
+            <VoteButtons
+              likeCount={review.like_count || 0}
+              dislikeCount={review.dislike_count || 0}
+              onVote={async (voteData) => {
+                try {
+                  console.log('리뷰 투표 시도:', { reviewId: review.id, voteData });
+                  await voteReview(review.id, voteData);
+                  console.log('리뷰 투표 성공');
+                  // 투표 후 리뷰 데이터 새로고침
+                  const updatedReview = await getReview(review.id);
+                  setReview(updatedReview);
+                } catch (error: any) {
+                  console.error('리뷰 투표 실패:', error);
+                  console.log('에러 상태:', error?.response?.status);
+                  console.log('에러 데이터:', error?.response?.data);
+                  // VoteButtons 컴포넌트가 이미 에러 처리를 하므로, 여기서는 다시 throw
+                  throw error;
+                }
+              }}
+              size="sm"
+            />
           </div>
         </div>
       </div>
@@ -191,30 +325,113 @@ export default function ReviewDetailPage() {
               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
               .map((comment) => (
                 <div key={comment.id} className="bg-gray-50 p-4 rounded-lg border">
-                  <div className="flex flex-col gap-2">
-                    {typeof comment.rating === 'number' && comment.rating > 0 && (
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm text-gray-600">별점:</span>
-                        <StarRating rating={comment.rating} size={16} />
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900">
+                        사용자 {comment.user_id ? `#${comment.user_id}` : '(익명)'}
+                        {user && comment.user_id === user.id && (
+                          <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1 rounded">내 댓글</span>
+                        )}
+                      </span>
+                      <span className="text-sm text-gray-500">{formatDate(comment.created_at)}</span>
+                    </div>
+                    
+                    {/* 수정/삭제 버튼 */}
+                    {editingCommentId !== comment.id && comment.user_id && user && comment.user_id === user.id && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => startEditingComment(comment)}
+                          className="px-3 py-1 text-xs bg-blue-50 text-blue-600 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="px-3 py-1 text-xs bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition-colors"
+                        >
+                          삭제
+                        </button>
                       </div>
                     )}
-                    <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{comment.content}</p>
-                    <div className="text-xs text-gray-500">
-                      {formatDate(comment.created_at)}
-                    </div>
                   </div>
+                  
+                  {/* 댓글 내용 또는 수정 폼 */}
+                  {editingCommentId === comment.id ? (
+                    <div className="space-y-3">
+                      <textarea
+                        value={editingContent}
+                        onChange={(e) => setEditingContent(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        rows={3}
+                        disabled={submitting}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleUpdateComment(comment.id)}
+                          disabled={!editingContent.trim() || submitting}
+                          className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {submitting ? '저장 중...' : '저장'}
+                        </button>
+                        <button
+                          onClick={cancelEditingComment}
+                          disabled={submitting}
+                          className="px-4 py-2 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600 disabled:opacity-50"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{comment.content}</p>
+                  )}
                 </div>
               ))
           ) : (
-            <p className="text-center text-gray-500 py-8">아직 댓글이 없습니다.</p>
+            <div className="text-center py-12 text-gray-500">
+              <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <p>아직 댓글이 없습니다.</p>
+              <p className="text-sm mt-1">첫 번째 댓글을 작성해보세요!</p>
+            </div>
           )}
         </div>
 
         {/* 댓글 작성 폼 */}
-        <div className="border-t pt-6">
-          <h4 className="text-lg font-medium text-gray-800 mb-3">댓글 작성</h4>
-          <p className="text-sm text-gray-600 mb-4">로그인 후 댓글을 작성할 수 있습니다. <Link to="/login" className="text-blue-600 hover:underline">로그인</Link></p>
-        </div>
+        {isAuthenticated ? (
+          <div className="border-t pt-6">
+            <form onSubmit={handleAddComment} className="space-y-4">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="댓글을 입력하세요..."
+                className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                rows={4}
+                disabled={submitting}
+              />
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={!newComment.trim() || submitting}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? '작성 중...' : '댓글 작성'}
+                </button>
+              </div>
+            </form>
+          </div>
+        ) : (
+          <div className="border-t pt-6 text-center text-gray-500">
+            <div className="bg-gray-50 rounded-lg p-6">
+              <svg className="w-8 h-8 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <p className="mb-2">댓글을 작성하려면 로그인이 필요합니다.</p>
+              <Link to="/login" className="text-blue-600 hover:underline font-medium">로그인하기</Link>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 하단 버튼 */}
