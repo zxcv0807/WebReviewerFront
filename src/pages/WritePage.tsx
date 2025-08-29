@@ -8,13 +8,14 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { ListNode, ListItemNode } from '@lexical/list';
 import { HeadingNode } from '@lexical/rich-text';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import ExampleTheme from '../plugins/ExampleTheme';
 import { ImageNode } from '../plugins/ImageNode';
 import ImagePlugin from '../plugins/ImagePlugin';
 import ToolbarPlugin from '../plugins/ToolbarPlugin';
-import { createPost } from '../api/posts';
+import { createPost, updatePost, getPostWithComments } from '../api/posts';
+import type { PostWithCommentsResponse } from '../types';
 import { useAppSelector } from '../redux/hooks';
 
 // CATEGORIES, setCategory, category 관련 select UI 등 제거
@@ -49,6 +50,7 @@ function SimpleEditor({ value, onChange }: { value: string; onChange: (value: st
 
 export default function WritePage() {
   const [searchParams] = useSearchParams();
+  const { id: paramId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
   const [title, setTitle] = useState('');
@@ -59,30 +61,64 @@ export default function WritePage() {
   const [isComposing, setIsComposing] = useState(false);
   const [lexicalState, setLexicalState] = useState<any>(null); // Lexical JSON 객체
   const [simpleContent, setSimpleContent] = useState(''); // 일반 텍스트 내용
+  const [, setExistingPost] = useState<PostWithCommentsResponse | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  
+  const editId = searchParams.get('edit') || paramId;
+  const isEditing = !!editId;
 
-  // URL 파라미터에서 탭 타입과 수정 모드 가져오기
+  // 수정 모드일 때 기존 게시글 데이터 가져오기
   useEffect(() => {
-    const editId = searchParams.get('edit');
-    // 수정 모드인 경우 기존 데이터 로드
-    if (editId) {
-      // TODO: 기존 게시글 데이터 로드
-    }
-  }, [searchParams]);
+    const fetchExistingPost = async () => {
+      if (!isEditing || !editId) return;
+      
+      try {
+        setLoading(true);
+        const postData = await getPostWithComments(parseInt(editId));
+        setExistingPost(postData);
+        
+        // 폼에 기존 데이터 설정
+        setTitle(postData.title || '');
+        setTags(postData.tags || []);
+        if (postData.type === 'free') {
+          setLexicalState(postData.content);
+        } else {
+          setSimpleContent(typeof postData.content === 'string' ? postData.content : '');
+        }
+      } catch (error) {
+        console.error('게시글 조회 실패:', error);
+        alert('게시글 정보를 불러올 수 없습니다.');
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchExistingPost();
+  }, [isEditing, editId, navigate]);
 
   // 로그인하지 않은 경우 로그인 페이지로 이동 또는 안내
   if (!isAuthenticated) {
     return (
       <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-8 text-center">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">글쓰기</h2>
-        <p className="mb-6 text-gray-600">글쓰기는 로그인 후에만 가능합니다.</p>
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">{isEditing ? '게시글 수정' : '글쓰기'}</h2>
+        <p className="mb-6 text-gray-600">{isEditing ? '게시글 수정' : '글쓰기'}은 로그인 후에만 가능합니다.</p>
         <a
           href="/login"
           className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow transition"
         >
           로그인하러 가기
         </a>
+      </div>
+    );
+  }
+
+  if (isEditing && loading) {
+    return (
+      <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-8 text-center">
+        <div className="text-gray-500">로딩 중...</div>
       </div>
     );
   }
@@ -150,17 +186,23 @@ export default function WritePage() {
         category: category, // category는 'free'로 고정
         tags,
       };
-      await createPost(postData);
-      alert('게시글이 작성되었습니다!');
-      navigate('/');
+      
+      if (isEditing && editId) {
+        await updatePost(parseInt(editId), postData);
+        alert('게시글이 성공적으로 수정되었습니다!');
+        navigate(`/post/${editId}`);
+      } else {
+        await createPost(postData);
+        alert('게시글이 작성되었습니다!');
+        navigate('/');
+      }
     } catch (error) {
-      console.error('게시글 작성 중 오류:', error);
-      alert('게시글 작성에 실패했습니다.');
+      console.error(isEditing ? '게시글 수정 중 오류:' : '게시글 작성 중 오류:', error);
+      alert(isEditing ? '게시글 수정에 실패했습니다.' : '게시글 작성에 실패했습니다.');
     }
   };
 
-  const isEditMode = searchParams.get('edit') !== null;
-  const pageTitle = isEditMode ? '게시글 수정' : '글쓰기';
+  const pageTitle = isEditing ? '게시글 수정' : '글쓰기';
   const isFreeBoard = category === 'free';
 
   return (
@@ -220,12 +262,27 @@ export default function WritePage() {
             />
           </div>
         )}
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow transition"
-        >
-          등록
-        </button>
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              if (isEditing && editId) {
+                navigate(`/post/${editId}`);
+              } else {
+                navigate('/');
+              }
+            }}
+            className="px-6 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            취소
+          </button>
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow transition"
+          >
+            {isEditing ? '수정' : '등록'}
+          </button>
+        </div>
       </form>
     </div>
   );

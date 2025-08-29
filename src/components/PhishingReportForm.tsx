@@ -1,19 +1,32 @@
-import React, { useState } from 'react';
-import type { PhishingReportForm } from '../types';
+import React, { useState, useEffect } from 'react';
+import type { PhishingReportForm, PhishingSiteWithCommentsResponse } from '../types';
 import { PHISHING_REASONS } from '../types';
 
 interface PhishingReportFormProps {
   onSubmit: (data: PhishingReportForm) => Promise<void>;
   onCancel: () => void;
+  initialData?: PhishingSiteWithCommentsResponse | null;
+  isEditing?: boolean;
 }
 
-export default function PhishingReportForm({ onSubmit, onCancel }: PhishingReportFormProps) {
+export default function PhishingReportForm({ onSubmit, onCancel, initialData, isEditing = false }: PhishingReportFormProps) {
   const [formData, setFormData] = useState<PhishingReportForm>({
     url: '',
     reason: 'fake_login',
     description: undefined,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 수정 모드일 때 초기 데이터 설정
+  useEffect(() => {
+    if (isEditing && initialData) {
+      setFormData({
+        url: initialData.url || '',
+        reason: initialData.reason || 'fake_login',
+        description: initialData.description || undefined,
+      });
+    }
+  }, [isEditing, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +121,10 @@ export default function PhishingReportForm({ onSubmit, onCancel }: PhishingRepor
             disabled={isSubmitting}
             className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? '신고 중...' : '신고하기'}
+            {isSubmitting 
+              ? (isEditing ? '수정 중...' : '신고 중...') 
+              : (isEditing ? '수정하기' : '신고하기')
+            }
           </button>
         </div>
       </form>

@@ -116,7 +116,12 @@ export default function SimpleCommentSection({
                 <div key={comment.id} className="bg-gray-50 rounded-lg p-4 border">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900">{comment.user_name}</span>
+                      <span className="font-medium text-gray-900">
+                        {comment.user_name || `사용자 #${comment.user_id || '익명'}`}
+                        {user && comment.user_id === user.id && (
+                          <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1 rounded">내 댓글</span>
+                        )}
+                      </span>
                       <span className="text-sm text-gray-500">{formatDate(comment.created_at)}</span>
                       {comment.updated_at !== comment.created_at && (
                         <span className="text-sm text-gray-400">(수정됨)</span>
@@ -124,26 +129,20 @@ export default function SimpleCommentSection({
                     </div>
                     
                     {/* 수정/삭제 버튼 */}
-                    {user && comment.user_id === user.id && (
-                      <div className="flex gap-2">
-                        {editingCommentId !== comment.id && (
-                          <>
-                            <button
-                              onClick={() => startEditing(comment)}
-                              className="text-sm text-gray-600 hover:text-gray-800 px-2 py-1 rounded"
-                              disabled={submitting}
-                            >
-                              수정
-                            </button>
-                            <button
-                              onClick={() => handleDeleteComment(comment.id)}
-                              className="text-sm text-red-600 hover:text-red-800 px-2 py-1 rounded"
-                              disabled={submitting}
-                            >
-                              삭제
-                            </button>
-                          </>
-                        )}
+                    {editingCommentId !== comment.id && comment.user_id && user && comment.user_id === user.id && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => startEditing(comment)}
+                          className="px-3 py-1 text-xs bg-blue-50 text-blue-600 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="px-3 py-1 text-xs bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition-colors"
+                        >
+                          삭제
+                        </button>
                       </div>
                     )}
                   </div>

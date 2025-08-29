@@ -24,6 +24,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // 네트워크 에러인 경우 인증 처리 없이 바로 에러 반환
+    if (error.code === 'ERR_NETWORK' || !error.response) {
+      console.warn('네트워크 에러 발생:', error.message);
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config;
     
     // 로그인 요청은 /refresh 시도에서 제외
@@ -48,7 +54,8 @@ axiosInstance.interceptors.response.use(
         originalRequest.headers['Authorization'] = `Bearer ${access_token}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        // refresh_token도 만료된 경우 로그아웃
+        // refresh_token도 만료된 경우에만 로그아웃
+        console.error('토큰 갱신 실패:', refreshError);
         localStorage.removeItem('access_token');
         window.location.href = '/login';
         return Promise.reject(refreshError);

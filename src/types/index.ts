@@ -73,14 +73,17 @@ export interface Review {
   site_name: string;
   url: string;
   summary: string;
-  rating: number; // 1-5 별점
+  rating: number; // 0-5 작성자 별점
   pros: string;
   cons: string;
   created_at: string;
   updated_at: string;
-  comments?: Comment[];
-  average_rating?: number; // 댓글 평균 별점
+  comments?: ReviewCommentResponse[];
   view_count: number; // 조회수
+  like_count: number; // 좋아요 수
+  dislike_count: number; // 싫어요 수
+  user_id?: number; // 작성자 ID (백엔드에서 제공되는 경우)
+  user_name?: string; // 작성자 이름 (백엔드에서 제공되는 경우)
 }
 
 export interface Comment {
@@ -89,7 +92,17 @@ export interface Comment {
   content: string;
   created_at: string;
   updated_at: string;
-  rating?: number; // 댓글 별점
+  user_id?: number; // 작성자 ID (백엔드에서 제공되는 경우)
+  user_name?: string; // 작성자 이름 (백엔드에서 제공되는 경우)
+}
+
+// 리뷰 댓글 응답 타입 (API 스펙에 맞춤)
+export interface ReviewCommentResponse {
+  id: number;
+  review_id: number;
+  content: string;
+  created_at: string;
+  user_id?: number;
 }
 
 export interface ReviewForm {
@@ -103,7 +116,6 @@ export interface ReviewForm {
 
 export interface CommentForm {
   content: string;
-  rating?: number; // 0-5, 리뷰 댓글용 선택적 별점
 }
 
 // 피싱 사이트 관련 타입
@@ -218,11 +230,14 @@ export interface PhishingSiteWithCommentsResponse {
   like_count: number;
   dislike_count: number;
   comments: PhishingCommentResponse[];
+  user_id?: number; // 작성자 ID (백엔드에서 제공되는 경우)
+  user_name?: string; // 작성자 이름 (백엔드에서 제공되는 경우)
 }
 
 export interface PostWithCommentsResponse {
   id: number;
   title: string;
+  type: TabType;
   category: string;
   content: any;
   tags: string[];

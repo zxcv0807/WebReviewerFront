@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import type { Post, PostForm, PostFilters, Review, ReviewForm, CommentForm, PhishingSite, PhishingReportForm, VoteCreate, VoteResponse, CommentCreate, CommentUpdate, PhishingCommentResponse, PostCommentResponse, PhishingSiteWithCommentsResponse, PostWithCommentsResponse, PaginatedResponse } from '../types';
+import type { Post, PostForm, PostFilters, Review, ReviewForm, PhishingSite, PhishingReportForm, VoteCreate, CommentCreate, CommentUpdate, PhishingCommentResponse, PostCommentResponse, PhishingSiteWithCommentsResponse, PostWithCommentsResponse, PaginatedResponse, ReviewCommentResponse } from '../types';
 
 // 게시글 목록 조회 (페이지네이션)
 export const getPosts = async (filters?: PostFilters): Promise<PaginatedResponse<Post>> => {
@@ -117,12 +117,53 @@ export const createReview = async (reviewData: ReviewForm): Promise<Review> => {
   }
 };
 
-export const createComment = async (reviewId: number, commentData: CommentForm): Promise<Comment> => {
+export const updateReview = async (id: number, reviewData: ReviewForm): Promise<Review> => {
+  try {
+    const response = await axiosInstance.put(`/api/reviews/${id}`, reviewData);
+    return response.data;
+  } catch (error) {
+    console.error('리뷰 수정 실패:', error);
+    throw error;
+  }
+};
+
+export const deleteReview = async (id: number): Promise<void> => {
+  try {
+    await axiosInstance.delete(`/api/reviews/${id}`);
+  } catch (error) {
+    console.error('리뷰 삭제 실패:', error);
+    throw error;
+  }
+};
+
+// 리뷰 댓글 작성
+export const createReviewComment = async (reviewId: number, commentData: CommentCreate): Promise<ReviewCommentResponse> => {
   try {
     const response = await axiosInstance.post(`/api/reviews/${reviewId}/comments`, commentData);
     return response.data;
   } catch (error) {
-    console.error('댓글 작성 실패:', error);
+    console.error('리뷰 댓글 작성 실패:', error);
+    throw error;
+  }
+};
+
+// 리뷰 댓글 수정
+export const updateReviewComment = async (commentId: number, commentData: CommentUpdate): Promise<ReviewCommentResponse> => {
+  try {
+    const response = await axiosInstance.put(`/api/comments/${commentId}`, commentData);
+    return response.data;
+  } catch (error) {
+    console.error('리뷰 댓글 수정 실패:', error);
+    throw error;
+  }
+};
+
+// 리뷰 댓글 삭제
+export const deleteReviewComment = async (commentId: number): Promise<void> => {
+  try {
+    await axiosInstance.delete(`/api/comments/${commentId}`);
+  } catch (error) {
+    console.error('리뷰 댓글 삭제 실패:', error);
     throw error;
   }
 };
@@ -151,6 +192,25 @@ export const createPhishingReport = async (reportData: PhishingReportForm): Prom
   }
 };
 
+export const updatePhishingSite = async (id: number, reportData: PhishingReportForm): Promise<PhishingSite> => {
+  try {
+    const response = await axiosInstance.put(`/api/phishing-sites/${id}`, reportData);
+    return response.data;
+  } catch (error) {
+    console.error('피싱 사이트 수정 실패:', error);
+    throw error;
+  }
+};
+
+export const deletePhishingSite = async (id: number): Promise<void> => {
+  try {
+    await axiosInstance.delete(`/api/phishing-sites/${id}`);
+  } catch (error) {
+    console.error('피싱 사이트 삭제 실패:', error);
+    throw error;
+  }
+};
+
 // 피싱 사이트 상세 + 댓글 조회 (조회수 증가)
 export const getPhishingSiteWithComments = async (id: number): Promise<PhishingSiteWithCommentsResponse> => {
   try {
@@ -164,18 +224,28 @@ export const getPhishingSiteWithComments = async (id: number): Promise<PhishingS
 
 // 투표 관련 API 함수들
 // 피싱사이트 추천/비추천 투표
-export const votePhishingSite = async (siteId: number, voteData: VoteCreate): Promise<VoteResponse> => {
+export const votePhishingSite = async (siteId: number, voteData: VoteCreate): Promise<void> => {
   try {
-    const response = await axiosInstance.post(`/api/phishing-sites/${siteId}/vote`, voteData);
-    return response.data;
+    await axiosInstance.post(`/api/phishing-sites/${siteId}/vote`, voteData);
   } catch (error) {
     console.error('피싱사이트 투표 실패:', error);
     throw error;
   }
 };
 
+// 피싱사이트 내 투표 상태 확인
+export const getMyPhishingSiteVote = async (siteId: number): Promise<any> => {
+  try {
+    const response = await axiosInstance.get(`/api/phishing-sites/${siteId}/my-vote`);
+    return response.data;
+  } catch (error) {
+    console.error('피싱사이트 투표 상태 조회 실패:', error);
+    throw error;
+  }
+};
+
 // 피싱사이트 투표 취소
-export const cancelPhishingSiteVote = async (siteId: number): Promise<void> => {
+export const removePhishingSiteVote = async (siteId: number): Promise<void> => {
   try {
     await axiosInstance.delete(`/api/phishing-sites/${siteId}/vote`);
   } catch (error) {
@@ -184,33 +254,29 @@ export const cancelPhishingSiteVote = async (siteId: number): Promise<void> => {
   }
 };
 
-// 피싱사이트 내 투표 조회
-export const getMyPhishingSiteVote = async (siteId: number): Promise<VoteResponse | null> => {
-  try {
-    const response = await axiosInstance.get(`/api/phishing-sites/${siteId}/my-vote`);
-    return response.data;
-  } catch (error: any) {
-    if (error.response?.status === 404) {
-      return null; // 투표하지 않은 경우
-    }
-    console.error('내 투표 조회 실패:', error);
-    throw error;
-  }
-};
-
 // 자유게시판 추천/비추천 투표
-export const votePost = async (postId: number, voteData: VoteCreate): Promise<VoteResponse> => {
+export const votePost = async (postId: number, voteData: VoteCreate): Promise<void> => {
   try {
-    const response = await axiosInstance.post(`/posts/posts/${postId}/vote`, voteData);
-    return response.data;
+    await axiosInstance.post(`/posts/posts/${postId}/vote`, voteData);
   } catch (error) {
     console.error('게시글 투표 실패:', error);
     throw error;
   }
 };
 
-// 자유게시판 투표 취소
-export const cancelPostVote = async (postId: number): Promise<void> => {
+// 게시글 내 투표 상태 확인
+export const getMyPostVote = async (postId: number): Promise<any> => {
+  try {
+    const response = await axiosInstance.get(`/posts/posts/${postId}/my-vote`);
+    return response.data;
+  } catch (error) {
+    console.error('게시글 투표 상태 조회 실패:', error);
+    throw error;
+  }
+};
+
+// 게시글 투표 취소
+export const removePostVote = async (postId: number): Promise<void> => {
   try {
     await axiosInstance.delete(`/posts/posts/${postId}/vote`);
   } catch (error) {
@@ -219,16 +285,33 @@ export const cancelPostVote = async (postId: number): Promise<void> => {
   }
 };
 
-// 자유게시판 내 투표 조회
-export const getMyPostVote = async (postId: number): Promise<VoteResponse | null> => {
+// 리뷰 추천/비추천 투표
+export const voteReview = async (reviewId: number, voteData: VoteCreate): Promise<void> => {
   try {
-    const response = await axiosInstance.get(`/posts/posts/${postId}/my-vote`);
+    await axiosInstance.post(`/api/reviews/${reviewId}/vote`, voteData);
+  } catch (error) {
+    console.error('리뷰 투표 실패:', error);
+    throw error;
+  }
+};
+
+// 리뷰 내 투표 상태 확인
+export const getMyReviewVote = async (reviewId: number): Promise<any> => {
+  try {
+    const response = await axiosInstance.get(`/api/reviews/${reviewId}/my-vote`);
     return response.data;
-  } catch (error: any) {
-    if (error.response?.status === 404) {
-      return null; // 투표하지 않은 경우
-    }
-    console.error('내 투표 조회 실패:', error);
+  } catch (error) {
+    console.error('리뷰 투표 상태 조회 실패:', error);
+    throw error;
+  }
+};
+
+// 리뷰 투표 취소
+export const removeReviewVote = async (reviewId: number): Promise<void> => {
+  try {
+    await axiosInstance.delete(`/api/reviews/${reviewId}/vote`);
+  } catch (error) {
+    console.error('리뷰 투표 취소 실패:', error);
     throw error;
   }
 };
