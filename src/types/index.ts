@@ -152,6 +152,12 @@ export interface User {
   id: number;
   email: string;
   name: string;
+  username?: string;
+}
+
+export interface UserUpdateForm {
+  username?: string;
+  email?: string;
 }
 
 export interface LoginForm {

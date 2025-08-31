@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { login, clearError } from '../redux/slices/authSlice';
@@ -15,6 +15,13 @@ export default function LoginPage() {
     password: '',
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // 컴포넌트 마운트 시 에러 클리어 (단, 이메일 인증 에러는 유지)
+  useEffect(() => {
+    if (error && !isEmailVerificationError(extractErrorMessage(error), error)) {
+      dispatch(clearError());
+    }
+  }, []);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -42,7 +49,7 @@ export default function LoginPage() {
     try {
       await dispatch(login(formData)).unwrap();
       navigate('/');
-    } catch (error) {
+    } catch {
       // 에러는 Redux에서 처리됨
     }
   };
@@ -66,7 +73,7 @@ export default function LoginPage() {
         `access_type=offline&` +
         `prompt=consent`;
       window.location.href = authUrl;
-    } catch (err) {
+    } catch {
       alert('Google 로그인에 실패했습니다.');
     }
   };
@@ -77,6 +84,55 @@ export default function LoginPage() {
     if (validationErrors[name]) {
       setValidationErrors(prev => ({ ...prev, [name]: '' }));
     }
+  };
+
+  // 이메일 인증 관련 에러인지 확인
+  const isEmailVerificationError = (errorMessage: string, errorObj?: unknown) => {
+    // 새로운 백엔드 응답에서 error 필드 확인
+    const errorObject = errorObj as { error?: string };
+    if (errorObject && errorObject.error === 'email_verification_required') {
+      return true;
+    }
+    
+    const emailVerificationKeywords = [
+      '이메일 인증', 'email verification', '인증이 필요', '인증을 완료', 
+      'verify', 'verification', '인증되지 않음', 'not verified',
+      'email not verified', 'unverified', '미인증', '인증하지', 
+      'activate', '활성화', 'confirm', '확인', 'required to login'
+    ];
+    
+    return emailVerificationKeywords.some(keyword => 
+      errorMessage.toLowerCase().includes(keyword.toLowerCase())
+    );
+  };
+
+  const handleEmailVerificationClick = () => {
+    // 에러 객체에서 이메일 가져오기 (백엔드가 제공)
+    const errorObj = error as { email?: string };
+    const emailFromError = errorObj?.email;
+    const emailToUse = emailFromError || formData.email;
+    
+    if (!emailToUse) {
+      setValidationErrors({ email: '이메일을 입력해주세요.' });
+      return;
+    }
+
+    if (!formData.password) {
+      setValidationErrors({ password: '비밀번호를 입력해주세요.' });
+      return;
+    }
+
+    const navigationData = {
+      email: emailToUse,
+      password: formData.password,
+      isExistingUser: true
+    };
+
+    // 에러 클리어 후 이메일 인증 페이지로 이동 (기존 사용자용)
+    dispatch(clearError());
+    navigate('/signup/verify', {
+      state: navigationData
+    });
   };
 
   return (
@@ -90,7 +146,17 @@ export default function LoginPage() {
           <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">로그인</h2>
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-              {extractErrorMessage(error)}
+              <div className="mb-2">{extractErrorMessage(error)}</div>
+              {isEmailVerificationError(extractErrorMessage(error), error) && (
+                <div className="mt-3 pt-3 border-t border-red-300">
+                  <button
+                    onClick={handleEmailVerificationClick}
+                    className="text-sm bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors"
+                  >
+                    이메일 인증하기
+                  </button>
+                </div>
+              )}
             </div>
           )}
           <div className="space-y-4">
@@ -174,6 +240,7 @@ export default function LoginPage() {
               <Link
                 to="/signup"
                 className="text-blue-600 hover:text-blue-700 font-medium"
+                onClick={() => dispatch(clearError())}
               >
                 회원가입
               </Link>
@@ -182,6 +249,7 @@ export default function LoginPage() {
               <Link
                 to="/"
                 className="text-sm text-gray-500 hover:text-gray-700"
+                onClick={() => dispatch(clearError())}
               >
                 ← 홈으로 돌아가기
               </Link>

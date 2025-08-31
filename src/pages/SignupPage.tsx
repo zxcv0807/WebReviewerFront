@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { signup, clearError } from '../redux/slices/authSlice';
@@ -16,6 +16,13 @@ export default function SignupPage() {
     confirmPassword: '',
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // 컴포넌트 마운트 시 에러 클리어
+  useEffect(() => {
+    if (error) {
+      dispatch(clearError());
+    }
+  }, []);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -56,14 +63,24 @@ export default function SignupPage() {
     if (!validateForm()) return;
 
     try {
+      // 실제 회원가입 API 호출 (인증코드 자동 발송됨)
       await dispatch(signup({
         username: formData.username,
         email: formData.email,
         password: formData.password,
       })).unwrap();
-      navigate('/');
-    } catch (error) {
-      // 에러는 Redux에서 처리됨
+      
+      // 회원가입 성공 시 인증 페이지로 이동
+      navigate('/signup/verify', {
+        state: {
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        }
+      });
+    } catch {
+      // 에러는 Redux state에 저장되어 UI에 표시됨
+      // 추가 처리 불필요
     }
   };
 
@@ -193,7 +210,7 @@ export default function SignupPage() {
               disabled={loading}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-2 px-4 rounded-md transition duration-200"
             >
-              {loading ? '가입 중...' : '회원가입'}
+              {loading ? '처리 중...' : '이메일 인증 시작'}
             </button>
           </form>
 
@@ -203,6 +220,7 @@ export default function SignupPage() {
               <Link
                 to="/login"
                 className="text-blue-600 hover:text-blue-700 font-medium"
+                onClick={() => dispatch(clearError())}
               >
                 로그인
               </Link>
@@ -211,6 +229,7 @@ export default function SignupPage() {
               <Link
                 to="/"
                 className="text-sm text-gray-500 hover:text-gray-700"
+                onClick={() => dispatch(clearError())}
               >
                 ← 홈으로 돌아가기
               </Link>

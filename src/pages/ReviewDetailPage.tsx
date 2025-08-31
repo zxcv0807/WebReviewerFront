@@ -89,10 +89,9 @@ export default function ReviewDetailPage() {
         // 로그인된 사용자의 투표 상태 확인
         if (isAuthenticated) {
           try {
-            const myVote = await getMyReviewVote(parseInt(id));
-            console.log('현재 사용자 투표 상태:', myVote);
-          } catch (voteError) {
-            console.log('투표 상태 조회 실패 (투표하지 않은 상태일 수 있음):', voteError);
+            await getMyReviewVote(parseInt(id));
+          } catch {
+            // 투표하지 않은 상태일 수 있음
           }
         }
       } catch (error) {
@@ -273,16 +272,12 @@ export default function ReviewDetailPage() {
               dislikeCount={review.dislike_count || 0}
               onVote={async (voteData) => {
                 try {
-                  console.log('리뷰 투표 시도:', { reviewId: review.id, voteData });
                   await voteReview(review.id, voteData);
-                  console.log('리뷰 투표 성공');
                   // 투표 후 리뷰 데이터 새로고침
                   const updatedReview = await getReview(review.id);
                   setReview(updatedReview);
                 } catch (error: any) {
                   console.error('리뷰 투표 실패:', error);
-                  console.log('에러 상태:', error?.response?.status);
-                  console.log('에러 데이터:', error?.response?.data);
                   // VoteButtons 컴포넌트가 이미 에러 처리를 하므로, 여기서는 다시 throw
                   throw error;
                 }

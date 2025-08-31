@@ -29,7 +29,13 @@ export const login = createAsyncThunk(
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
       const response = await authAPI.login(credentials);
-      return response;
+      // 토큰 저장
+      if (response.access_token) {
+        localStorage.setItem('access_token', response.access_token);
+      }
+      // 사용자 정보 별도 조회
+      const userResponse = await authAPI.me();
+      return { user: userResponse.user, access_token: response.access_token };
     } catch (error: any) {
       const detail = error?.response?.data?.detail;
       return rejectWithValue(detail || '로그인에 실패했습니다.');
@@ -41,8 +47,10 @@ export const signup = createAsyncThunk(
   'auth/signup',
   async (userData: { username: string; email: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await authAPI.signup(userData);
-      return response;
+      // 회원가입만 수행 (인증코드 자동 발송됨)
+      await authAPI.signup(userData);
+      // 회원가입 성공 시 사용자 데이터 반환 (인증 전 상태)
+      return { success: true, userData };
     } catch (error: any) {
       // 백엔드 에러 메시지를 그대로 넘김
       const detail = error?.response?.data?.detail;
@@ -107,7 +115,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
-        localStorage.setItem('access_token', action.payload.access_token);
+        // access_token already stored in thunk
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -118,11 +126,12 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(signup.fulfilled, (state, action) => {
+      .addCase(signup.fulfilled, (state) => {
         state.loading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.user;
-        localStorage.setItem('access_token', action.payload.access_token);
+        // 회원가입 성공했지만 아직 인증 전 상태
+        state.isAuthenticated = false;
+        state.user = null;
+        state.error = null; // 에러 클리어
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;

@@ -6,18 +6,39 @@ const PASSWORD_REGEX = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{
 
 // 백엔드 에러 메시지 추출 함수
 export const extractErrorMessage = (error: any): string => {
-  if (!error) return '알 수 없는 오류가 발생했습니다.';
-  if (typeof error === 'string') return error;
+  if (!error) {
+    return '알 수 없는 오류가 발생했습니다.';
+  }
+  
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  // 새로운 백엔드 응답 구조: error.message 먼저 확인
+  if (error.message) {
+    return error.message;
+  }
+  
+  // 기존 구조: response.data.detail 확인
   const detail = error?.response?.data?.detail;
-  if (!detail) return '알 수 없는 오류가 발생했습니다.';
-  if (typeof detail === 'string') return detail;
-  if (Array.isArray(detail)) {
-    return detail.map((d) => d.msg).join(', ');
+  
+  if (detail) {
+    if (typeof detail === 'string') {
+      return detail;
+    }
+    
+    if (Array.isArray(detail)) {
+      return detail.map((d) => d.msg).join(', ');
+    }
+    
+    if (typeof detail === 'object' && detail.msg) {
+      return detail.msg;
+    }
+    
+    return JSON.stringify(detail);
   }
-  if (typeof detail === 'object' && detail.msg) {
-    return detail.msg;
-  }
-  return JSON.stringify(detail);
+  
+  return '알 수 없는 오류가 발생했습니다.';
 };
 
 // 이메일 유효성 검사
