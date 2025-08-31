@@ -21,8 +21,6 @@ export default function PhishingSiteDetailPage() {
       try {
         setLoading(true);
         const siteData = await getPhishingSiteWithComments(parseInt(id));
-        console.log('피싱사이트 데이터:', siteData);
-        console.log('user_id 값:', siteData.user_id, typeof siteData.user_id);
         setPhishingSite(siteData);
         setComments(siteData.comments || []);
       } catch (error) {

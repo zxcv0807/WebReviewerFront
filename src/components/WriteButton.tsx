@@ -8,12 +8,12 @@ interface WriteButtonProps {
 }
 
 export default function WriteButton({ activeTab }: WriteButtonProps) {
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
   // 자유게시판에서만 글쓰기 버튼 표시
   if (activeTab !== 'free') {
     return null;
   }
-
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   if (!isAuthenticated) {
     return (

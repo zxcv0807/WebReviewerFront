@@ -21,18 +21,25 @@ export interface SignupRequest {
   password: string;
 }
 
+export interface UserUpdateRequest {
+  username?: string;
+  email?: string;
+}
+
+export interface EmailVerificationStatusResponse {
+  email_verified: boolean;
+}
+
 export const authAPI = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     const response = await axiosInstance.post('/auth/login', data);
     return response.data;
   },
 
-  signup: async (data: SignupRequest): Promise<AuthResponse> => {
+  signup: async (data: SignupRequest): Promise<void> => {
     try {
-      const response = await axiosInstance.post('/auth/signup', data);
-      return response.data;
+      await axiosInstance.post('/auth/signup', data);
     } catch (error: any) {
-      // 백엔드 에러를 그대로 throw
       throw error;
     }
   },
@@ -53,6 +60,42 @@ export const authAPI = {
       return { user: response.data };
     }
     
+    return response.data;
+  },
+
+  updateMe: async (data: UserUpdateRequest): Promise<{ user: import('../redux/slices/authSlice').User }> => {
+    const response = await axiosInstance.put('/auth/me', data);
+    
+    if (response.data && response.data.id && !response.data.user) {
+      return { user: response.data };
+    }
+    
+    return response.data;
+  },
+
+  deleteMe: async (): Promise<void> => {
+    await axiosInstance.delete('/auth/me');
+  },
+
+  getEmailVerificationStatus: async (): Promise<EmailVerificationStatusResponse> => {
+    const response = await axiosInstance.get('/auth/email-verification-status');
+    return response.data;
+  },
+
+  sendVerificationEmail: async (data: { email: string; password: string }): Promise<void> => {
+    await axiosInstance.post('/auth/send-verification-email', data);
+  },
+
+  resendVerificationCode: async (): Promise<void> => {
+    await axiosInstance.post('/auth/send-verification-email');
+  },
+
+  verifyEmailCode: async (code: string): Promise<void> => {
+    await axiosInstance.post('/auth/verify-email-code', { code });
+  },
+
+  verifySignup: async (data: { email: string; code: string }): Promise<AuthResponse> => {
+    const response = await axiosInstance.post('/auth/verify-signup', data);
     return response.data;
   },
 };

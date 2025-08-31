@@ -14,6 +14,8 @@ import ReviewDetailPage from './pages/ReviewDetailPage';
 import PhishingReportPage from './pages/PhishingReportPage';
 import PhishingSiteDetailPage from './pages/PhishingSiteDetailPage';
 import GoogleAuthCallback from './pages/GoogleAuthCallback';
+import { AccountPage } from './pages/AccountPage';
+import { SignupVerificationPage } from './pages/SignupVerificationPage';
 import Footer from './components/Footer';
 
 function App() {
@@ -33,6 +35,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/signup/verify" element={<SignupVerificationPage />} />
             <Route path="/write" element={<WritePage />} />
             <Route path="/edit/:id" element={<WritePage />} />
             <Route path="/review/write" element={<ReviewWritePage />} />
@@ -41,6 +44,7 @@ function App() {
             <Route path="/phishing/:id" element={<PhishingSiteDetailPage />} />
             <Route path="/post/:id" element={<PostDetailPage />} />
             <Route path="/auth/callback" element={<GoogleAuthCallback />} />
+            <Route path="/account" element={<AccountPage />} />
           </Routes>
         </main>
         <Footer />
