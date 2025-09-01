@@ -234,7 +234,7 @@ export default function LoginPage() {
               <img src={GoogleLogo} alt="Sign in with Google" className="h-10" />
             </button>
           </div>
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-3">
             <p className="text-sm text-gray-600">
               계정이 없으신가요?{' '}
               <Link
@@ -243,6 +243,16 @@ export default function LoginPage() {
                 onClick={() => dispatch(clearError())}
               >
                 회원가입
+              </Link>
+            </p>
+            <p className="text-sm text-gray-600">
+              비밀번호를 잊으셨나요?{' '}
+              <Link
+                to="/forgot-password"
+                className="text-blue-600 hover:text-blue-700 font-medium"
+                onClick={() => dispatch(clearError())}
+              >
+                비밀번호 찾기
               </Link>
             </p>
             <div className="mt-4">

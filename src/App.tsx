@@ -16,6 +16,8 @@ import PhishingSiteDetailPage from './pages/PhishingSiteDetailPage';
 import GoogleAuthCallback from './pages/GoogleAuthCallback';
 import { AccountPage } from './pages/AccountPage';
 import { SignupVerificationPage } from './pages/SignupVerificationPage';
+import { PasswordChangePage } from './pages/PasswordChangePage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import Footer from './components/Footer';
 
 function App() {
@@ -45,6 +47,8 @@ function App() {
             <Route path="/post/:id" element={<PostDetailPage />} />
             <Route path="/auth/callback" element={<GoogleAuthCallback />} />
             <Route path="/account" element={<AccountPage />} />
+            <Route path="/account/password" element={<PasswordChangePage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           </Routes>
         </main>
         <Footer />
