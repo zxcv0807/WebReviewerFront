@@ -12,7 +12,10 @@ export const AccountPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     username: user?.username || '',
-    email: user?.email || '',
+  });
+  const [passwordVerification, setPasswordVerification] = useState({
+    password: '',
+    showModal: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +28,6 @@ export const AccountPage: React.FC = () => {
     if (user) {
       setFormData({
         username: user.username || '',
-        email: user.email || '',
       });
       // 이메일 인증 상태 확인
       checkEmailVerificationStatus();
@@ -49,32 +51,41 @@ export const AccountPage: React.FC = () => {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.username || formData.username === user?.username) {
+      setError('변경된 내용이 없습니다.');
+      return;
+    }
+
+    // 비밀번호 검증 모달 표시
+    setPasswordVerification({ password: '', showModal: true });
+    setError(null);
+    setSuccess(null);
+  };
+
+  const handlePasswordVerification = async () => {
+    if (!passwordVerification.password) {
+      setError('현재 비밀번호를 입력해주세요.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const updateData: { username?: string; email?: string } = {};
+      await authAPI.updateMe({
+        username: formData.username,
+        current_password: passwordVerification.password,
+      });
       
-      if (formData.username && formData.username !== user?.username) {
-        updateData.username = formData.username;
-      }
-      if (formData.email && formData.email !== user?.email) {
-        updateData.email = formData.email;
-      }
-
-      if (Object.keys(updateData).length === 0) {
-        setError('변경된 내용이 없습니다.');
-        return;
-      }
-
-      await authAPI.updateMe(updateData);
-      
-      dispatch(restoreUser() as any);
-      setSuccess('프로필이 성공적으로 업데이트되었습니다.');
+      dispatch(restoreUser() as never);
+      setSuccess('사용자명이 성공적으로 업데이트되었습니다.');
       setIsEditing(false);
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || '프로필 업데이트에 실패했습니다.');
+      setPasswordVerification({ password: '', showModal: false });
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(errorMessage || '프로필 업데이트에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -89,8 +100,9 @@ export const AccountPage: React.FC = () => {
       
       localStorage.removeItem('access_token');
       window.location.href = '/login';
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || '계정 삭제에 실패했습니다.');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(errorMessage || '계정 삭제에 실패했습니다.');
     } finally {
       setLoading(false);
       setShowDeleteConfirm(false);
@@ -171,6 +183,7 @@ export const AccountPage: React.FC = () => {
                         </div>
                       )}
                     </div>
+                    <p className="mt-1 text-xs text-gray-500">이메일은 수정할 수 없습니다.</p>
                   </div>
 
                 </div>
@@ -202,19 +215,6 @@ export const AccountPage: React.FC = () => {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      이메일
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="이메일을 입력하세요"
-                    />
-                  </div>
 
                   <div className="flex space-x-3">
                     <button
@@ -242,12 +242,18 @@ export const AccountPage: React.FC = () => {
           <div className="px-6 pb-6 space-y-4">
             {!isEditing && (
               <>
-                <div className="flex space-x-3">
+                <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => setIsEditing(true)}
                     className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
                   >
                     프로필 편집
+                  </button>
+                  <button
+                    onClick={() => navigate('/account/password')}
+                    className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
+                  >
+                    비밀번호 변경
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
@@ -274,7 +280,7 @@ export const AccountPage: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur-sm backdrop-brightness-75 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-sm mx-4">
             <h3 className="text-lg font-semibold mb-4">계정 삭제 확인</h3>
             <p className="text-gray-600 mb-6">
@@ -290,6 +296,61 @@ export const AccountPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Verification Modal */}
+      {passwordVerification.showModal && (
+        <div className="fixed inset-0 backdrop-blur-sm backdrop-brightness-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">비밀번호 확인</h3>
+            <p className="text-gray-600 mb-4">
+              사용자명을 변경하려면 현재 비밀번호를 입력해주세요.
+            </p>
+            
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                현재 비밀번호
+              </label>
+              <input
+                type="password"
+                value={passwordVerification.password}
+                onChange={(e) => setPasswordVerification(prev => ({ ...prev, password: e.target.value }))}
+                className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="현재 비밀번호를 입력하세요"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handlePasswordVerification();
+                  }
+                }}
+              />
+            </div>
+
+            <div className="flex space-x-2">
+              <button
+                onClick={handlePasswordVerification}
+                disabled={loading}
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                {loading ? '확인 중...' : '확인'}
+              </button>
+              <button
+                onClick={() => {
+                  setPasswordVerification({ password: '', showModal: false });
+                  setError(null);
+                }}
                 className="flex-1 bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700"
               >
                 취소

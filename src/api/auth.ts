@@ -23,7 +23,22 @@ export interface SignupRequest {
 
 export interface UserUpdateRequest {
   username?: string;
-  email?: string;
+  current_password: string;
+}
+
+export interface PasswordChangeRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  new_password: string;
 }
 
 export interface EmailVerificationStatusResponse {
@@ -97,6 +112,18 @@ export const authAPI = {
   verifySignup: async (data: { email: string; code: string }): Promise<AuthResponse> => {
     const response = await axiosInstance.post('/auth/verify-signup', data);
     return response.data;
+  },
+
+  changePassword: async (data: PasswordChangeRequest): Promise<void> => {
+    await axiosInstance.put('/auth/password', data);
+  },
+
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<void> => {
+    await axiosInstance.post('/auth/forgot-password', data);
+  },
+
+  resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
+    await axiosInstance.post('/auth/reset-password', data);
   },
 };
 
