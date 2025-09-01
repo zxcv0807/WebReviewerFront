@@ -79,12 +79,13 @@ export const AccountPage: React.FC = () => {
         current_password: passwordVerification.password,
       });
       
-      dispatch(restoreUser() as any);
+      dispatch(restoreUser() as never);
       setSuccess('사용자명이 성공적으로 업데이트되었습니다.');
       setIsEditing(false);
       setPasswordVerification({ password: '', showModal: false });
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || '프로필 업데이트에 실패했습니다.');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(errorMessage || '프로필 업데이트에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -99,8 +100,9 @@ export const AccountPage: React.FC = () => {
       
       localStorage.removeItem('access_token');
       window.location.href = '/login';
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || '계정 삭제에 실패했습니다.');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(errorMessage || '계정 삭제에 실패했습니다.');
     } finally {
       setLoading(false);
       setShowDeleteConfirm(false);

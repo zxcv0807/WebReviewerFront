@@ -73,8 +73,9 @@ export const PasswordChangePage: React.FC = () => {
         navigate('/account');
       }, 3000);
       
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || '비밀번호 변경에 실패했습니다.');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(errorMessage || '비밀번호 변경에 실패했습니다.');
     } finally {
       setLoading(false);
     }

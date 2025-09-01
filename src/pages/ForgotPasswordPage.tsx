@@ -41,8 +41,9 @@ export const ForgotPasswordPage: React.FC = () => {
       await authAPI.forgotPassword({ email: formData.email });
       setSuccess('비밀번호 재설정 코드가 이메일로 발송되었습니다.');
       setStep('reset');
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || '이메일 발송에 실패했습니다.');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(errorMessage || '이메일 발송에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -87,8 +88,9 @@ export const ForgotPasswordPage: React.FC = () => {
         confirmPassword: '',
       });
       
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || '비밀번호 재설정에 실패했습니다.');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(errorMessage || '비밀번호 재설정에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -101,8 +103,9 @@ export const ForgotPasswordPage: React.FC = () => {
     try {
       await authAPI.forgotPassword({ email: formData.email });
       setSuccess('인증 코드가 다시 발송되었습니다.');
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || '코드 재발송에 실패했습니다.');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(errorMessage || '코드 재발송에 실패했습니다.');
     } finally {
       setLoading(false);
     }
