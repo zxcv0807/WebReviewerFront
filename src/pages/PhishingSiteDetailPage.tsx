@@ -6,6 +6,7 @@ import { PHISHING_REASONS } from '../types';
 import VoteButtons from '../components/VoteButtons';
 import SimpleCommentSection from '../components/SimpleCommentSection';
 import EditDeleteButtons from '../components/EditDeleteButtons';
+import { UserDropdown } from '../components/UserDropdown';
 
 export default function PhishingSiteDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -161,6 +162,16 @@ export default function PhishingSiteDetailPage() {
             />
           )}
         </div>
+        
+        {/* 작성자 정보 */}
+        {(phishingSite as any).user_name && (
+          <div className="mb-4 p-3 bg-red-50 rounded-lg border-l-4 border-red-400">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700">신고자</span>
+              <UserDropdown username={(phishingSite as any).user_name} className="text-red-700 font-semibold" />
+            </div>
+          </div>
+        )}
         
         {/* 신고 사유와 날짜/조회수를 한 줄에 배치 */}
         <div className="flex items-center justify-between mb-4">

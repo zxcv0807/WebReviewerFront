@@ -55,6 +55,21 @@ export default function Header() {
                       계정 관리
                     </Link>
                     <hr className="border-gray-200" />
+                    <Link
+                      to="/messages"
+                      onClick={() => setShowDropdown(false)}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      쪽지함
+                    </Link>
+                    <Link
+                      to="/memos"
+                      onClick={() => setShowDropdown(false)}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      내 메모
+                    </Link>
+                    <hr className="border-gray-200" />
                     <button
                       onClick={handleLogoutClick}
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

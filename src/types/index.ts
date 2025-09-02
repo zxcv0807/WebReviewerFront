@@ -102,7 +102,9 @@ export interface ReviewCommentResponse {
   review_id: number;
   content: string;
   created_at: string;
-  user_id?: number;
+  updated_at: string;
+  user_id: number;
+  user_name: string;
 }
 
 export interface ReviewForm {

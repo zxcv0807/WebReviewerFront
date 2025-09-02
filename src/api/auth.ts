@@ -41,6 +41,56 @@ export interface ResetPasswordRequest {
   new_password: string;
 }
 
+export interface MessageSendRequest {
+  receiver_username: string;
+  subject: string;
+  content: string;
+}
+
+export interface Message {
+  id: number;
+  sender_username: string | null;
+  receiver_username: string | null;
+  subject: string;
+  content: string;
+  is_read: boolean;
+  created_at: string;
+  read_at: string | null;
+}
+
+export interface MessageListResponse {
+  messages: Message[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
+export interface UserMemoRequest {
+  target_username: string;
+  memo: string;
+}
+
+export interface UserMemo {
+  id: number | null;
+  target_username: string;
+  memo: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface UserMemoListItem {
+  id: number;
+  target_username: string;
+  memo: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserMemoListResponse {
+  memos: UserMemoListItem[];
+  total: number;
+}
+
 export interface EmailVerificationStatusResponse {
   email_verified: boolean;
 }
@@ -124,6 +174,48 @@ export const authAPI = {
 
   resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
     await axiosInstance.post('/auth/reset-password', data);
+  },
+
+  // 쪽지 관련 API
+  sendMessage: async (data: MessageSendRequest): Promise<void> => {
+    await axiosInstance.post('/messages/send', data);
+  },
+
+  getInboxMessages: async (page: number = 1, limit: number = 10): Promise<MessageListResponse> => {
+    const response = await axiosInstance.get(`/messages/inbox?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  getSentMessages: async (page: number = 1, limit: number = 10): Promise<MessageListResponse> => {
+    const response = await axiosInstance.get(`/messages/sent?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  markMessageAsRead: async (messageId: number): Promise<void> => {
+    await axiosInstance.put(`/messages/${messageId}/read`);
+  },
+
+  deleteMessage: async (messageId: number): Promise<void> => {
+    await axiosInstance.delete(`/messages/${messageId}`);
+  },
+
+  // 사용자 메모 관련 API
+  saveUserMemo: async (data: UserMemoRequest): Promise<void> => {
+    await axiosInstance.post('/messages/memo', data);
+  },
+
+  getUserMemo: async (targetUsername: string): Promise<UserMemo> => {
+    const response = await axiosInstance.get(`/messages/memo/${targetUsername}`);
+    return response.data;
+  },
+
+  deleteUserMemo: async (targetUsername: string): Promise<void> => {
+    await axiosInstance.delete(`/messages/memo/${targetUsername}`);
+  },
+
+  getAllUserMemos: async (): Promise<UserMemoListResponse> => {
+    const response = await axiosInstance.get('/messages/memos');
+    return response.data;
   },
 };
 
