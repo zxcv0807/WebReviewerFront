@@ -18,6 +18,8 @@ import { AccountPage } from './pages/AccountPage';
 import { SignupVerificationPage } from './pages/SignupVerificationPage';
 import { PasswordChangePage } from './pages/PasswordChangePage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { MessagesPage } from './pages/MessagesPage';
+import { UserMemosPage } from './pages/UserMemosPage';
 import Footer from './components/Footer';
 
 function App() {
@@ -49,6 +51,8 @@ function App() {
             <Route path="/account" element={<AccountPage />} />
             <Route path="/account/password" element={<PasswordChangePage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/memos" element={<UserMemosPage />} />
           </Routes>
         </main>
         <Footer />

@@ -6,6 +6,7 @@ import EditDeleteButtons from '../components/EditDeleteButtons';
 import VoteButtons from '../components/VoteButtons';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 import { restoreUser } from '../redux/slices/authSlice';
+import { UserDropdown } from '../components/UserDropdown';
 
 // 별점 표시 컴포넌트
 function StarRating({ rating, onChange, size = 20, readOnly = true }: { rating: number; onChange?: (r: number) => void; size?: number; readOnly?: boolean }) {
@@ -247,10 +248,20 @@ export default function ReviewDetailPage() {
           href={review.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 text-lg break-all mb-4 inline-block"
+          className="text-blue-600 hover:text-blue-800 text-lg break-all mb-3 inline-block"
         >
           {review.url}
         </a>
+        
+        {/* 작성자 정보 */}
+        {(review as any).user_name && (review as any).user_name !== '알수없음' && (
+          <div className="mb-4 p-3 bg-green-50 rounded-lg border-l-4 border-green-400">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700">작성자</span>
+              <UserDropdown username={(review as any).user_name} className="text-green-700 font-semibold" />
+            </div>
+          </div>
+        )}
         
         {/* 별점과 메타 정보 */}
         <div className="flex items-center justify-between mb-4">
@@ -323,12 +334,19 @@ export default function ReviewDetailPage() {
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-900">
-                        사용자 {comment.user_id ? `#${comment.user_id}` : '(익명)'}
+                        {comment.user_name && comment.user_name !== '알수없음' ? (
+                          <UserDropdown username={comment.user_name} className="text-blue-600 font-semibold" />
+                        ) : (
+                          `사용자 #${comment.user_id || '익명'}`
+                        )}
                         {user && comment.user_id === user.id && (
                           <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1 rounded">내 댓글</span>
                         )}
                       </span>
                       <span className="text-sm text-gray-500">{formatDate(comment.created_at)}</span>
+                      {comment.updated_at !== comment.created_at && (
+                        <span className="text-xs text-gray-400">(수정됨)</span>
+                      )}
                     </div>
                     
                     {/* 수정/삭제 버튼 */}

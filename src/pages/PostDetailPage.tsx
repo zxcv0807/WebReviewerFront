@@ -6,6 +6,7 @@ import LexicalViewer from '../components/LexicalViewer';
 import VoteButtons from '../components/VoteButtons';
 import SimpleCommentSection from '../components/SimpleCommentSection';
 import EditDeleteButtons from '../components/EditDeleteButtons';
+import { UserDropdown } from '../components/UserDropdown';
 
 // 별점 표시 컴포넌트 (간단 버전)
 function StarRating({ rating, size = 5 }: { rating: number; size?: number }) {
@@ -220,6 +221,16 @@ export default function PostDetailPage() {
               itemType="게시물"
             />
           </div>
+          
+          {/* 작성자 정보 */}
+          {(post as any).user_name && (post as any).user_name !== '알수없음' && (
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">작성자</span>
+                <UserDropdown username={(post as any).user_name} className="text-blue-700 font-semibold" />
+              </div>
+            </div>
+          )}
           
           {/* 메타 정보 */}
           {post.type === 'reviews' ? (

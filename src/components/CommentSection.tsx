@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppSelector } from '../redux/hooks';
 import type { PostCommentResponse, PhishingCommentResponse, CommentCreate } from '../types';
+import { UserDropdown } from './UserDropdown';
 
 interface CommentSectionProps {
   comments: PostCommentResponse[] | PhishingCommentResponse[];
@@ -138,7 +139,13 @@ export default function CommentSection({
                   <div key={comment.id} className="bg-white rounded-lg p-3 border">
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{comment.user_name}</span>
+                        <span className="font-semibold text-blue-600">
+                          {comment.user_name ? (
+                            <UserDropdown username={comment.user_name} className="text-blue-600 font-semibold" />
+                          ) : (
+                            `사용자 #${comment.user_id || '익명'}`
+                          )}
+                        </span>
                         <span className="text-xs text-gray-500">{formatDate(comment.created_at)}</span>
                         {comment.updated_at !== comment.created_at && (
                           <span className="text-xs text-gray-400">(수정됨)</span>

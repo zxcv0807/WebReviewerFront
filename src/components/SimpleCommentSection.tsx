@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppSelector } from '../redux/hooks';
 import type { PostCommentResponse, PhishingCommentResponse, CommentCreate } from '../types';
+import { UserDropdown } from './UserDropdown';
 
 interface SimpleCommentSectionProps {
   comments: PostCommentResponse[] | PhishingCommentResponse[];
@@ -116,12 +117,18 @@ export default function SimpleCommentSection({
                 <div key={comment.id} className="bg-gray-50 rounded-lg p-4 border">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900">
-                        {comment.user_name || `사용자 #${comment.user_id || '익명'}`}
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-blue-600">
+                          {comment.user_name && comment.user_name !== '알수없음' ? (
+                            <UserDropdown username={comment.user_name} className="text-blue-600 font-semibold" />
+                          ) : (
+                            `사용자 #${comment.user_id || '익명'}`
+                          )}
+                        </span>
                         {user && comment.user_id === user.id && (
-                          <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1 rounded">내 댓글</span>
+                          <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">내 댓글</span>
                         )}
-                      </span>
+                      </div>
                       <span className="text-sm text-gray-500">{formatDate(comment.created_at)}</span>
                       {comment.updated_at !== comment.created_at && (
                         <span className="text-sm text-gray-400">(수정됨)</span>
