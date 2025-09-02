@@ -254,7 +254,7 @@ export default function ReviewDetailPage() {
         </a>
         
         {/* 작성자 정보 */}
-        {(review as any).user_name && (
+        {(review as any).user_name && (review as any).user_name !== '알수없음' && (
           <div className="mb-4 p-3 bg-green-50 rounded-lg border-l-4 border-green-400">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-700">작성자</span>
@@ -334,7 +334,11 @@ export default function ReviewDetailPage() {
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-900">
-                        {comment.user_name ? comment.user_name : `사용자 #${comment.user_id || '익명'}`}
+                        {comment.user_name && comment.user_name !== '알수없음' ? (
+                          <UserDropdown username={comment.user_name} className="text-blue-600 font-semibold" />
+                        ) : (
+                          `사용자 #${comment.user_id || '익명'}`
+                        )}
                         {user && comment.user_id === user.id && (
                           <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1 rounded">내 댓글</span>
                         )}

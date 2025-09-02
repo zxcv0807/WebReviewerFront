@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../redux/hooks';
 import { authAPI, type UserMemoListItem } from '../api/auth';
 import { UserMemoModal } from '../components/UserMemoModal';
 
 export const UserMemosPage: React.FC = () => {
-  const navigate = useNavigate();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   
   const [memos, setMemos] = useState<UserMemoListItem[]>([]);

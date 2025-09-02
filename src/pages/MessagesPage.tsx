@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../redux/hooks';
 import { authAPI, type Message, type MessageListResponse } from '../api/auth';
 import { MessageViewModal } from '../components/MessageViewModal';
 import { SendMessageModal } from '../components/SendMessageModal';
 
 export const MessagesPage: React.FC = () => {
-  const navigate = useNavigate();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   
   const [activeTab, setActiveTab] = useState<'inbox' | 'sent'>('inbox');

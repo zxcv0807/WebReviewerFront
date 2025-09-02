@@ -119,7 +119,7 @@ export default function SimpleCommentSection({
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-blue-600">
-                          {comment.user_name ? (
+                          {comment.user_name && comment.user_name !== '알수없음' ? (
                             <UserDropdown username={comment.user_name} className="text-blue-600 font-semibold" />
                           ) : (
                             `사용자 #${comment.user_id || '익명'}`
