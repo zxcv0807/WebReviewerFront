@@ -41,36 +41,46 @@ export default function PhishingSiteList({ sites }: PhishingSiteListProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {sites.map((site) => {
-        return (
-          <Link key={site.id} to={`/phishing/${site.id}`} className="block">
-            <div className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer">
-              <div className="p-3 sm:p-4">
-                <div className="flex justify-between items-center gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base sm:text-lg font-bold text-red-600 break-all hover:text-red-700 transition-colors">
-                      {site.url}
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className={`inline-block px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap ${getReasonColor(site.reason)}`}>
-                      {getReasonLabel(site.reason)}
-                    </span>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      <span>{site.view_count || 0}</span>
-                    </div>
-                  </div>
-                </div>
+    <div>
+      {sites.map((site) => (
+        <div key={site.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+          <div className="grid grid-cols-12 gap-4 py-3 px-4 text-sm items-center">
+            {/* 제목 */}
+            <div className="col-span-6 sm:col-span-7">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Link 
+                  to={`/phishing/${site.id}`} 
+                  className="text-red-600 hover:underline font-medium break-all"
+                >
+                  {site.url}
+                </Link>
+                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getReasonColor(site.reason)}`}>
+                  {getReasonLabel(site.reason)}
+                </span>
               </div>
             </div>
-          </Link>
-        );
-      })}
+            
+            {/* 작성자 */}
+            <div className="col-span-2 sm:col-span-2 text-gray-600 truncate">
+              신고자
+            </div>
+            
+            {/* 작성일 */}
+            <div className="col-span-2 sm:col-span-2 text-gray-500 text-xs sm:text-sm">
+              {new Date(site.created_at).toLocaleDateString('ko-KR', {
+                year: '2-digit',
+                month: '2-digit', 
+                day: '2-digit'
+              })}
+            </div>
+            
+            {/* 조회수 */}
+            <div className="col-span-2 sm:col-span-1 text-gray-500 text-right">
+              {site.view_count || 0}
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 } 

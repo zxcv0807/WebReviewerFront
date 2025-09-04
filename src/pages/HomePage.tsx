@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Post, TabType, Review, PhishingSite, PaginationInfo } from '../types';
-import { getPosts, getReviews, getPhishingSites } from '../api/posts';
+import { getPosts, getReviews, getPhishingSites, type SortOptions } from '../api/posts';
 import TabNavigation from '../components/TabNavigation';
 import PostCard from '../components/PostCard';
 import WriteButton from '../components/WriteButton';
@@ -15,13 +15,21 @@ export default function HomePage() {
   const [phishingSites, setPhishingSites] = useState<PhishingSite[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('reviews');
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   
   // 페이지네이션 상태
   const [reviewsPagination, setReviewsPagination] = useState<PaginationInfo | null>(null);
   const [freePostsPagination, setFreePostsPagination] = useState<PaginationInfo | null>(null);
   const [phishingPagination, setPhishingPagination] = useState<PaginationInfo | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // 정렬 상태
+  const [sortBy, setSortBy] = useState<SortOptions['sort_by']>('created_at');
+  
+  // sortBy에 따라 자동으로 적절한 sortOrder 결정
+  const getSortOrder = (): SortOptions['sort_order'] => {
+    // 모든 경우에 desc (높은 것부터, 최신순)가 자연스러움
+    return 'desc';
+  };
 
   const handleWriteClick = () => {};
 
@@ -33,7 +41,14 @@ export default function HomePage() {
       
       try {
         setLoading(true);
-        const response = await getPosts({ type: 'free', category: '자유게시판', page: currentPage, limit: 10 });
+        const response = await getPosts({ 
+          type: 'free', 
+          category: '자유게시판', 
+          page: currentPage, 
+          limit: 10,
+          sort_by: sortBy,
+          sort_order: getSortOrder()
+        });
         setFreePosts(response.data);
         setFreePostsPagination(response.pagination);
       } catch (error) {
@@ -45,7 +60,7 @@ export default function HomePage() {
     };
 
     fetchFreePosts();
-  }, [activeTab, currentPage]);
+  }, [activeTab, currentPage, sortBy]);
 
   // 웹사이트 리뷰 데이터 가져오기
   useEffect(() => {
@@ -54,7 +69,10 @@ export default function HomePage() {
       
       try {
         setLoading(true);
-        const response = await getReviews(currentPage, 10);
+        const response = await getReviews(currentPage, 10, undefined, {
+          sort_by: sortBy,
+          sort_order: getSortOrder()
+        });
         setWebsiteReviews(response.data);
         setReviewsPagination(response.pagination);
       } catch (error) {
@@ -66,7 +84,7 @@ export default function HomePage() {
     };
 
     fetchWebsiteReviews();
-  }, [activeTab, currentPage]);
+  }, [activeTab, currentPage, sortBy]);
 
   // 피싱 사이트 데이터 가져오기
   useEffect(() => {
@@ -75,7 +93,10 @@ export default function HomePage() {
       
       try {
         setLoading(true);
-        const response = await getPhishingSites(currentPage, 10);
+        const response = await getPhishingSites(currentPage, 10, undefined, {
+          sort_by: sortBy,
+          sort_order: getSortOrder()
+        });
         setPhishingSites(response.data);
         setPhishingPagination(response.pagination);
       } catch (error) {
@@ -87,7 +108,7 @@ export default function HomePage() {
     };
 
     fetchPhishingSites();
-  }, [activeTab, currentPage]);
+  }, [activeTab, currentPage, sortBy]);
 
   // 탭 변경시 페이지 초기화
   useEffect(() => {
@@ -98,7 +119,6 @@ export default function HomePage() {
     setCurrentPage(page);
   };
 
-  const handleSearch = () => {};
 
 
   return (
@@ -106,56 +126,49 @@ export default function HomePage() {
       
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       
-      {/* 검색 및 글쓰기 버튼 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div className="flex-1 w-full sm:max-w-md">
-          <div className="flex">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="제목 또는 내용으로 검색..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-            />
-            <button
-              onClick={handleSearch}
-              className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-            >
-              검색
-            </button>
-          </div>
-        </div>
-        <div className="w-full sm:w-auto">
-          {activeTab === 'reviews' ? (
-              <Link
-              to="/review/write"
-                className="block w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition text-sm sm:text-base"
-              >
-              리뷰 작성
-            </Link>
-          ) : activeTab === 'phishing' ? (
-            <Link
-              to="/phishing/report"
-              className="block w-full sm:w-auto text-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow transition text-sm sm:text-base"
-            >
-              피싱 사이트 신고
-              </Link>
-          ) : (
-            <WriteButton activeTab={activeTab} onClick={handleWriteClick} />
-            )}
-        </div>
+      {/* 정렬 옵션 */}
+      <div className="flex justify-end items-center mb-6">
+        <select
+          value={sortBy}
+          onChange={(e) => {
+            setSortBy(e.target.value as SortOptions['sort_by']);
+            setCurrentPage(1);
+          }}
+          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+        >
+          <option value="created_at">최신순</option>
+          <option value="view_count">조회순</option>
+        </select>
       </div>
 
       {/* 웹사이트 리뷰 탭 */}
       {activeTab === 'reviews' && (
         <div>
-          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">웹사이트 리뷰</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">웹사이트 리뷰</h2>
+            <Link
+              to="/review/write"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition text-sm sm:text-base"
+            >
+              리뷰 작성
+            </Link>
+          </div>
+          
           {loading ? (
             <div className="text-center py-8 text-gray-500 text-sm sm:text-base">로딩 중...</div>
           ) : websiteReviews.length > 0 ? (
             <>
-              <div className="space-y-4 sm:space-y-6">
+              {/* 테이블 헤더 */}
+              <div className="bg-gray-100 border-b border-gray-200">
+                <div className="grid grid-cols-12 gap-4 py-3 px-4 text-sm font-medium text-gray-700">
+                  <div className="col-span-6 sm:col-span-7">제목</div>
+                  <div className="col-span-2 sm:col-span-2">작성자</div>
+                  <div className="col-span-2 sm:col-span-2">작성일</div>
+                  <div className="col-span-2 sm:col-span-1 text-right">조회</div>
+                </div>
+              </div>
+              
+              <div className="bg-white border border-gray-200 rounded-b-lg">
                 {websiteReviews.map((review) => (
                   <ReviewCard
                     key={review.id}
@@ -163,6 +176,7 @@ export default function HomePage() {
                   />
                 ))}
               </div>
+              
               {reviewsPagination && (
                 <Pagination 
                   pagination={reviewsPagination} 
@@ -188,16 +202,30 @@ export default function HomePage() {
       {/* 자유게시판 탭 */}
       {activeTab === 'free' && (
         <div>
-          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">자유게시판</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">자유게시판</h2>
+            <WriteButton activeTab={activeTab} onClick={handleWriteClick} />
+          </div>
           {loading ? (
             <div className="text-center py-8 text-gray-500 text-sm sm:text-base">로딩 중...</div>
           ) : freePosts.length > 0 ? (
           <>
-            <ul className="space-y-3 sm:space-y-4">
+            {/* 테이블 헤더 */}
+            <div className="bg-gray-100 border-b border-gray-200">
+              <div className="grid grid-cols-12 gap-4 py-3 px-4 text-sm font-medium text-gray-700">
+                <div className="col-span-6 sm:col-span-7">제목</div>
+                <div className="col-span-2 sm:col-span-2">작성자</div>
+                <div className="col-span-2 sm:col-span-2">작성일</div>
+                <div className="col-span-2 sm:col-span-1 text-right">조회수</div>
+              </div>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-b-lg">
               {freePosts.map((post) => (
                 <PostCard key={post.id} post={post} titleColor="text-green-600" />
               ))}
-            </ul>
+            </div>
+            
             {freePostsPagination && (
               <Pagination 
                 pagination={freePostsPagination} 
@@ -220,12 +248,33 @@ export default function HomePage() {
       {/* 피싱사이트 신고 탭 */}
       {activeTab === 'phishing' && (
         <div>
-          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">피싱사이트 신고</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">피싱사이트 신고</h2>
+            <Link
+              to="/phishing/report"
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow transition text-sm sm:text-base"
+            >
+              피싱 사이트 신고
+            </Link>
+          </div>
           {loading ? (
             <div className="text-center py-8 text-gray-500 text-sm sm:text-base">로딩 중...</div>
           ) : phishingSites.length > 0 ? (
             <>
-              <PhishingSiteList sites={phishingSites} />
+              {/* 테이블 헤더 */}
+              <div className="bg-gray-100 border-b border-gray-200">
+                <div className="grid grid-cols-12 gap-4 py-3 px-4 text-sm font-medium text-gray-700">
+                  <div className="col-span-6 sm:col-span-7">제목</div>
+                  <div className="col-span-2 sm:col-span-2">작성자</div>
+                  <div className="col-span-2 sm:col-span-2">작성일</div>
+                  <div className="col-span-2 sm:col-span-1 text-right">조회</div>
+                </div>
+              </div>
+              
+              <div className="bg-white border border-gray-200 rounded-b-lg">
+                <PhishingSiteList sites={phishingSites} />
+              </div>
+              
               {phishingPagination && (
                 <Pagination 
                   pagination={phishingPagination} 

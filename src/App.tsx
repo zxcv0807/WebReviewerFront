@@ -20,6 +20,7 @@ import { PasswordChangePage } from './pages/PasswordChangePage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { MessagesPage } from './pages/MessagesPage';
 import { UserMemosPage } from './pages/UserMemosPage';
+import SearchPage from './pages/SearchPage';
 import Footer from './components/Footer';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/signup/verify" element={<SignupVerificationPage />} />
