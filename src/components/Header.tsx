@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 import { logout } from '../redux/slices/authSlice';
 import WebReviewerLogo from '../assets/WebReviewerLogo-removebg-preview.png';
@@ -6,12 +6,26 @@ import { useState } from 'react';
 
 export default function Header() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleLogoutClick = () => {
     dispatch(logout());
     setShowDropdown(false);
+  };
+
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   return (
@@ -30,6 +44,26 @@ export default function Header() {
               <p className="text-sm text-gray-600">웹사이트 리뷰 커뮤니티</p>
             </div>
           </Link>
+
+          {/* 검색창 */}
+          <div className="flex-1 max-w-md mx-8">
+            <div className="flex">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="제목 또는 내용으로 검색..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+              <button
+                onClick={handleSearch}
+                className="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                검색
+              </button>
+            </div>
+          </div>
 
           {/* 네비게이션 */}
           <nav className="flex items-center space-x-4">

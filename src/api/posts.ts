@@ -1,8 +1,46 @@
 import axiosInstance from './axiosInstance';
 import type { Post, PostForm, PostFilters, Review, ReviewForm, PhishingSite, PhishingReportForm, VoteCreate, CommentCreate, CommentUpdate, PhishingCommentResponse, PostCommentResponse, PhishingSiteWithCommentsResponse, PostWithCommentsResponse, PaginatedResponse, ReviewCommentResponse } from '../types';
 
+// 정렬 및 검색 옵션 타입
+export interface SortOptions {
+  sort_by?: 'created_at' | 'view_count';
+  sort_order?: 'asc' | 'desc';
+}
+
+export interface SearchOptions extends SortOptions {
+  q: string;
+  content_type?: 'posts' | 'reviews' | 'phishing';
+  page?: number;
+  limit?: number;
+}
+
+// 통합 검색 결과 타입
+export interface UnifiedSearchResult {
+  type: 'post' | 'review' | 'phishing';
+  data: Post | Review | PhishingSite;
+}
+
+// 통합 검색 API
+export const searchUnified = async (options: SearchOptions): Promise<PaginatedResponse<UnifiedSearchResult>> => {
+  try {
+    const params = new URLSearchParams();
+    params.append('q', options.q);
+    if (options.content_type) params.append('content_type', options.content_type);
+    if (options.sort_by) params.append('sort_by', options.sort_by);
+    if (options.sort_order) params.append('sort_order', options.sort_order);
+    if (options.page) params.append('page', options.page.toString());
+    if (options.limit) params.append('limit', options.limit.toString());
+    
+    const response = await axiosInstance.get(`/search/?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('통합 검색 중 오류:', error);
+    throw error;
+  }
+};
+
 // 게시글 목록 조회 (페이지네이션)
-export const getPosts = async (filters?: PostFilters): Promise<PaginatedResponse<Post>> => {
+export const getPosts = async (filters?: PostFilters & SortOptions): Promise<PaginatedResponse<Post>> => {
   try {
     const params = new URLSearchParams();
     if (filters?.search) params.append('search', filters.search);
@@ -10,6 +48,8 @@ export const getPosts = async (filters?: PostFilters): Promise<PaginatedResponse
     if (filters?.limit) params.append('limit', filters.limit.toString());
     if (filters?.type) params.append('type', filters.type);
     if (filters?.category) params.append('category', filters.category);
+    if (filters?.sort_by) params.append('sort_by', filters.sort_by);
+    if (filters?.sort_order) params.append('sort_order', filters.sort_order);
     const url = `/posts/posts?${params.toString()}`;
     const response = await axiosInstance.get(url);
     return response.data;
@@ -84,11 +124,14 @@ export const getTags = async (): Promise<string[]> => {
 };
 
 // 리뷰 관련 API 함수들 (페이지네이션)
-export const getReviews = async (page: number = 1, limit: number = 10): Promise<PaginatedResponse<Review>> => {
+export const getReviews = async (page: number = 1, limit: number = 10, search?: string, sortOptions?: SortOptions): Promise<PaginatedResponse<Review>> => {
   try {
     const params = new URLSearchParams();
     params.append('page', page.toString());
     params.append('limit', limit.toString());
+    if (search) params.append('search', search);
+    if (sortOptions?.sort_by) params.append('sort_by', sortOptions.sort_by);
+    if (sortOptions?.sort_order) params.append('sort_order', sortOptions.sort_order);
     const response = await axiosInstance.get(`/api/reviews?${params.toString()}`);
     return response.data;
   } catch (error) {
@@ -169,11 +212,14 @@ export const deleteReviewComment = async (commentId: number): Promise<void> => {
 };
 
 // 피싱 사이트 관련 API 함수들 (페이지네이션)
-export const getPhishingSites = async (page: number = 1, limit: number = 10): Promise<PaginatedResponse<PhishingSite>> => {
+export const getPhishingSites = async (page: number = 1, limit: number = 10, search?: string, sortOptions?: SortOptions): Promise<PaginatedResponse<PhishingSite>> => {
   try {
     const params = new URLSearchParams();
     params.append('page', page.toString());
     params.append('limit', limit.toString());
+    if (search) params.append('search', search);
+    if (sortOptions?.sort_by) params.append('sort_by', sortOptions.sort_by);
+    if (sortOptions?.sort_order) params.append('sort_order', sortOptions.sort_order);
     const response = await axiosInstance.get(`/api/phishing-sites?${params.toString()}`);
     return response.data;
   } catch (error) {
